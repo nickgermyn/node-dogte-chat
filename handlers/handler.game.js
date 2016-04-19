@@ -51,6 +51,7 @@ module.exports = function(bot) {
         // Create a new game
         Game.create({
           gameTime: gameTime,
+          chatId: chatId,
           complete: false,
           shotguns: [userName]
         }, function(err, createdItem) {

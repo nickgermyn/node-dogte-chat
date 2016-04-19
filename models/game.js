@@ -6,6 +6,7 @@ var moment = require('moment');
 
 var gameSchema = new Schema({
   gameTime: Date,
+  chatId: Number,
   createdTimestamp: { type: Date, default: Date.now },
   complete: { type: Boolean, default: false },
   notified: { type: Boolean, default: false },
