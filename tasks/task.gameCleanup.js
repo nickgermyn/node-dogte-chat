@@ -17,7 +17,7 @@ module.exports = function(bot) {
   // *****************************
   function checkGame() {
     console.log(' >checking game...');
-    
+
     // Check for game
     Game.findOne({complete: false}, function(err, game) {
       if(err) return handleError(err, chatId);
