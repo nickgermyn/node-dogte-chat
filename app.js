@@ -1,0 +1,40 @@
+/**
+ * Main application file
+ */
+
+'use strict';
+
+// Set default node environment to development
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
+var fs = require('fs');
+var mongoose = require('mongoose');
+var config = require('./config/environment');
+var TelegramBot = require('node-telegram-bot-api');
+
+// Custom extension handler
+require.extensions['.md'] = function(module, fileName) {
+	module.exports = fs.readFileSync(fileName, 'utf8');
+};
+
+// Connect to database
+mongoose.connect(config.mongo.uri, config.mongo.options);
+mongoose.connection.on('error', function(err) {
+	console.error('MongoDB connection error: ' + err);
+	process.exit(-1);
+	}
+);
+// Populate DB with sample data
+if(config.seedDB) { require('./config/seed'); }
+
+// Setup the bot
+var bot = new TelegramBot(config.telegram.token, config.telegram.options);
+require('./handlers')(bot);
+require('./tasks')(bot);
+
+bot.getMe().then(function (me) {
+  console.log('Hi my name is %s', me.username);
+});
+
+// Expose application
+exports = module.exports = bot;

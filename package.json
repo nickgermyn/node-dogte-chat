@@ -1,0 +1,27 @@
+{
+  "name": "node-dogte-chat",
+  "version": "0.1.0",
+  "description": "Node.js implementation of dogte chat bot",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dogte",
+    "chat",
+    "bot"
+  ],
+  "author": "Nick Germyn",
+  "license": "ISC",
+  "dependencies": {
+    "dota2-api": "^0.1.0",
+    "fs": "0.0.2",
+    "lodash": "^4.11.1",
+    "moment": "^2.13.0",
+    "mongoose": "^4.4.12",
+    "node-telegram-bot-api": "^0.21.1",
+    "path": "^0.12.7",
+    "steam-web": "^0.2.5"
+  }
+}
