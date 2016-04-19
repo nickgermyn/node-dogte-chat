@@ -36,6 +36,7 @@ module.exports = function(bot) {
       if(game) {
         // Update the existing game
         game.gameTime = gameTime;
+        game.notified = false;
         game.shotgun(userName);
 
         game.save(function(err) {

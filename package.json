@@ -20,6 +20,7 @@
     "lodash": "^4.11.1",
     "moment": "^2.13.0",
     "mongoose": "^4.4.12",
+    "node-schedule": "^1.1.0",
     "node-telegram-bot-api": "^0.21.1",
     "path": "^0.12.7",
     "steam-web": "^0.2.5"

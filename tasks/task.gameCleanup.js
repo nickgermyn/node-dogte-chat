@@ -4,13 +4,17 @@
 
 'use strict';
 
+var schedule = require('node-schedule');
+
 var Game = require('../models/game');
 const noGame = 'No game scheduled for today';
 
 module.exports = function(bot) {
 
   // Run funciton which repeats every X ms
-  checkGame();
+  var rule = new schedule.RecurrenceRule();
+  rule.minute = [0, 5, 10, 15, 20, 25, 30, 35 ,40, 45, 50, 55];
+  var j = schedule.scheduleJob(rule, checkGame);
 
   // *****************************
   //    Checks for incomplete games that need cleanup
@@ -31,7 +35,7 @@ module.exports = function(bot) {
 
       if(game && game.shouldBeNotified()) {
         var timeToStart = game.timeToStart();
-        bot.sendMessage(game.chatId, 'Dota will begin in '+timeToStart+'. Man up!');
+        bot.sendMessage(game.chatId, 'Dota will begin '+timeToStart+'. Man up!');
         game.notified = true;
         game.save(function(err) {
           if(err) return handleError(err, chatId);
@@ -39,8 +43,6 @@ module.exports = function(bot) {
         });
       }
     });
-
-    setInterval(checkGame, 60000);
   }
 
   // *****************************

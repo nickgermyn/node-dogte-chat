@@ -20,9 +20,9 @@ gameSchema.methods.sendTimeUpdate = function(bot, chatId) {
   var gameTime = moment(this.gameTime);
 
   if(now > this.gameTime) {
-    when = 'Dota already began ' + moment().from(gameTime);
+    when = 'Dota already began ' + moment().to(gameTime);
   } else {
-    when = 'Dota will begin in ' + moment().to(gameTime);
+    when = 'Dota will begin ' + moment().to(gameTime);
   }
   var response = when + '\n' + this.shotguns.join(', ');
   bot.sendMessage(chatId, response);
@@ -119,7 +119,7 @@ gameSchema.methods.shouldBeNotified = function() {
 }
 gameSchema.methods.timeToStart = function() {
   var gameTime = moment(this.gameTime);
-  return gameTime.toNow();
+  return gameTime.fromNow();
 }
 
 module.exports = mongoose.model('Game', gameSchema);
