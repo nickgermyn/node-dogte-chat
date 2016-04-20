@@ -18,6 +18,7 @@ module.exports = function(bot) {
 
     var parts = match[1];
     console.log('parts: ' + parts);
+    console.log('from: ', msg.from);
 
     var steamId = getParam(parts, 'steam');
     var dotaBuffId = getParam(parts, 'dotabuff');

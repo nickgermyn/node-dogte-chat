@@ -30,7 +30,7 @@ This command starts the node.js app
 ###THE DATABASE
 * `/register steam:<steam_id> dotabuff:<dotabuff player id>` - Registers user
 * `/account` - Displays the current user account details
-* `/delete account` - Deletes the users account.
+* `/delete_account` - Deletes the users account.
 
 ###DOTA EVENTS
 * `/dota` - creates a new dota event or modifies an existing event's time:
@@ -40,7 +40,7 @@ This command starts the node.js app
     * `/dota at 18:45 with alice, bob` (will shotgun alice and bob)
     * `/dota`
 
-* `/delete dota` - will remove the current dota event
+* `/delete_dota` - will remove the current dota event
 * `shotgun!` - shotgun for dota
 * `unshotgun!` - Remove yourself from the shotgun (and ready) list.
 * `rdy!` - ready up

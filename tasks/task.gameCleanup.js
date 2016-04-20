@@ -35,7 +35,9 @@ module.exports = function(bot) {
 
       if(game && game.shouldBeNotified()) {
         var timeToStart = game.timeToStart();
-        bot.sendMessage(game.chatId, 'Dota will begin '+timeToStart+'. Man up!');
+        if(game.chatId) {
+          bot.sendMessage(game.chatId, 'Dota will begin '+timeToStart+'. Man up!');
+        }
         game.notified = true;
         game.save(function(err) {
           if(err) return handleError(err, chatId);

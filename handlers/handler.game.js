@@ -68,7 +68,7 @@ module.exports = function(bot) {
   // *****************************
   //    Delete game
   // *****************************
-  bot.onText(/\/delete (dota|dogte|dotes)/, function(msg) {
+  bot.onText(/\/delete_(dota|dogte|dotes)/, function(msg) {
     var chatId = msg.chat.id;
 
     // Find game
@@ -88,7 +88,7 @@ module.exports = function(bot) {
   // *****************************
   //    shotgun
   // *****************************
-  bot.onText(/shotgun\!/, function(msg) {
+  bot.onText(/^shotgun\!/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
@@ -114,7 +114,7 @@ module.exports = function(bot) {
   // *****************************
   //    unshotgun
   // *****************************
-  bot.onText(/unshotgun\!/, function(msg) {
+  bot.onText(/^unshotgun\!/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
@@ -140,7 +140,7 @@ module.exports = function(bot) {
   // *****************************
   //    rdy!
   // *****************************
-  bot.onText(/rdy\!/, function(msg) {
+  bot.onText(/^rdy\!/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
@@ -170,7 +170,7 @@ module.exports = function(bot) {
   // *****************************
   //    undry
   // *****************************
-  bot.onText(/unrdy\!/, function(msg) {
+  bot.onText(/^unrdy\!/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
