@@ -133,56 +133,74 @@ module.exports = function(bot) {
     var userName = msg.from.userName;
 
     bot.sendMessage(chatId, '*RETRIEVING FEEDING DATA*\nOne moment please.', { parse_mode: 'Markdown' });
-    var feeds = [];
-
     var update = /update/.test(msg.text);
-    if(update) {
-      // Refresh data from dota API
-      console.log('feed data update requested');
-      bot.sendMessage(chatId, 'Contacting Steam servers. This may take a while...\n');
-    }
-    getFeeds(update)
+
+    // the getFeeds function actually does the refresh of data from the dota API
+    return getFeeds(update, function(text) { bot.sendMessage(chatId, text); })
       .then(function(feeds) {
         var table = '*TOP FEEDERS OF THE WEEK* (25 Matches)\n\nRANK....NAME....DEATHS\n';
         for (var i = 1; i < feeds.length + 1; i++) {
           var rank = feeds[i-1];
-          table = table + i + '.....' + rank.dota_name+'....'+rank.total_vals+'\n';
+          table = table + i + '.....' + rank.displayName+'....'+rank.sum+'\n';
         }
-        bot.sendMessage(chatId, table, { parse_mode: 'Markdown' });
-
-        var footer = 'Congratulations to '+feeds[0].dota_name+'!\nCheck out the match where he fed the most ('+feeds[0].top_vals+' times!)';
-        bot.sendMessage(chatId, footer);
-
-        sendMatch(chatId, feeds[0].top_match);
+        var footer = 'Congratulations to '+feeds[0].displayName+'!\nCheck out the match where he fed the most ('+feeds[0].max+' times!)';
+        return bot.sendMessage(chatId, table, { parse_mode: 'Markdown' })
+          .then(() => bot.sendMessage(chatId, footer))
+          .then(() => sendMatch(chatId, feeds[0].topGame));
       })
-      .catch(function(err) { handleError(err, chatId); });
+      .catch(err => {
+        console.log('err handler...');
+        handleError(err, chatId);
+      });
+  });
+
+  bot.onText(/\/test/, function(msg) {
+    // getSum(1401151, 7, 'deaths')
+    //   .then(function(result) {
+    //     console.log('sum: ', result);
+    //   });
+
+    valRank('deaths')
+      .then(function(result) {
+        console.log('valRank: ', result);
+      });
+
   });
 
   // *****************************
   // Helper method to actually retrieve the list of feeds.
   // Returns a promise with the list of feeds
-  function getFeeds(update) {
-    return new Promise(function(resolve, reject) {
-      if(update) {
-        valRank('deaths')
-          .then(function(feeds) {
+  function getFeeds(update, sendMessage) {
+      function getFromServer() {
+        console.log('Requesting data from steam servers...');
+        sendMessage('Contacting Steam servers. This may take a while...\n');
+
+        var a = valRank('deaths');
+        var b = a.then(function(feeds) {
             // Serialize to JSON for easy retrieval
             return fs.writeFileAsync(outputFileName, JSON.stringify(feeds));
-          })
-          .then(function() {
+          });
+        return Promise.join(a, b, function(feeds, writeFileResult) {
             console.log('New feeds JSON file saved.');
-            resolve(feeds);
-          })
-          .catch(reject);
-
-      } else {
-        // Display cached data
-        console.log('Loading feed data from cache');
-        fs.readFileAsync(outputFileName, 'utf8')
-          .then(resolve)
-          .catch(reject);
+            return feeds;
+          });
       }
-    });
+
+      if(!update) {
+        // Attempt to load cached data
+        console.log('Attempting to load feeding data from cache');
+        return fs.readFileAsync(outputFileName)
+          .then(text => JSON.parse(text))
+          .catch(function(err) {
+            console.log('Failed to load from cache')
+            return getFromServer();
+          });
+        console.log('should never get here?');
+      }
+
+      // Otherwise, just get data from the server
+      console.log('Just get data from the server');
+      return getFromServer();
   }
 
   // *****************************
@@ -209,17 +227,46 @@ module.exports = function(bot) {
   // Returns ranked dict based on player value.
   // Returns a promise with the ranks
   function valRank(attribute) {
+    console.log('Getting a ranked value dictionary for all users on attribute: ', attribute);
+
+    var getSumMap = function(user) {
+      var accountId = user.steamId;
+
+      return getSum(accountId, 7, attribute)
+        .then(results => {
+          return {
+            user: user,
+            results: results
+          };
+        });
+    }
+
     return User.find().exec()
-      .then(function(users) {
-        var results = [];
-        users.forEach(function(user) {
-          var name = user.userName;
-          var accountId = user.steamId;
-          var vals =getSum(accountId, 7, attribute);
-          console.log('vals: ', vals);
+      .then(users => Promise.all(users.map(getSumMap)))
+      .then(result => {
+        console.log('summarising data...');
+
+        var summarised = result.map(res => {
+          // For each user
+          var vals = res.results.map(x => x[1]);
+          var sumOfAttr = vals.reduce( (prev,cur) => prev + parseInt(cur) );
+          var maxAttr = vals.reduce( (prev, cur) => cur > prev ? cur : prev );
+          var topGame = res.results.find(x => x[1] == maxAttr)[0];
+          console.log(res.user.displayName + ' sum: ' + sumOfAttr, ' max: ' + maxAttr + ' in game ' + topGame);
+
+          return {
+            displayName: res.user.displayName,
+            userName: res.user.userName,
+            steamId: res.user.steamId,
+            dotaBuffId: res.user.dotaBuffId,
+            sum: sumOfAttr,
+            max: maxAttr,
+            topGame: topGame,
+            vals: vals
+          };
         });
 
-        return results;
+        return summarised.sort( (a,b) => b - a);
       });
   }
 
@@ -229,34 +276,35 @@ module.exports = function(bot) {
   //
   // Returns a promise with the list
   function getSum(accountId, days, attribute) {
-      return da.getMatchHistoryAsync({account_id: user.steamId, matches_requested: 25})
-        .then(function(result) {
-          console.log('returned result: ', result);
-          var matches = JSON.parse(result).result.matches;
-          var matchIds = [];
-          var attrList = [];
+      //console.log('getting match history for account: ', accountId);
 
-          if(matches) {
-            for (var i = 0; i < matches.length; i++) {
-              var matchId = matches[i].match_id;
-              da.getMatchDetailsAsync({match_id: matchId })
-                .then(function(result) {
-                  console.log('returned result: ', result);
-                  var matchDetails = JSON.parse(result).result;
-                  var players = matchDetails.players;
-                  var playersVal = getPlayerVal(players, accountId, attribute);
-                  matchIds.append(matchId);
-                  attrList.append(playersVal);
-                })
-                .catch(function(err) {
-                    console.error('Error getting match details: '+err);
-                });
-            };
-          }
+      var getDetailsForMatch = function(match) {
+        //console.log('getting details for match: ', match.match_id);
+        return da.getMatchDetailsAsync({match_id: match.match_id })
+          .then(result => {
+            //console.log('matchDetails result: ', result);
+            var matchDetails = JSON.parse(result).result;
+            var players = matchDetails.players;
+            var playersVal = getPlayerVal(players, accountId, attribute);
+            //console.log('playersVal: ', playersVal);
+            return playersVal;
+          })
+          .catch(function(err) {
+              console.error('Error getting match ' + match.match_id + ' details: '+err);
+          });
+      }
 
-          // Zip the match ID's with the attributes and return
-          return zip(matchIds, attrList);
-        });
+      return da.getMatchHistoryAsync({account_id: accountId, matches_requested: 25})
+        .then(result => {
+            var matches = JSON.parse(result).result.matches || [];
+            var matchIds = matches.map(function(m) { return m.match_id });
+            return Promise
+              .all(matches.map(getDetailsForMatch))
+              .then(function(details) {
+                // Zip the match ID's with the attributes and return
+                return zip(matchIds, details);
+              });
+          });
   }
 
 

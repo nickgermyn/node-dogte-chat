@@ -72,23 +72,36 @@ module.exports = function(bot) {
     var chatId = msg.chat.id;
 
     // Find game
-    Game.findOne({complete: false}, function(err, game) {
-      if(err) return handleError(err, chatId);
+    var a = Game.findOne({complete: false}).exec();
+    var b = a.then(game => {
       if(game) {
-        game.remove(function(err) {
-          if(err) return handleError(err, chatId);
-            bot.sendMessage(chatId, 'Dota event deleted');
-        });
-      } else {
-        bot.sendMessage(chatId, noGame);
+        return bot.sendMessage(chatId, 'Are you sure you wish to delete <details>?', {
+          reply_markup: {
+            keyboard: [[{text: 'yes'}, {text: 'no'}]],
+            one_time_keyboard: true
+          },
+          reply_to_message_id: msg.message_id
+        })
       }
+      return null;
     });
+
+    return Promise.join(a, b, (game, sent) => {
+      if(!sent) {
+        return bot.sendMessage(chatId, noGame);
+      }
+      return bot.onReplyToMessage(chatId, sent.message_id, reply => {
+        if(reply.text == 'yes') {
+          return game.removeAsync().then(() => bot.sendMessage(chatId, 'Dota event deleted'));
+        }
+      });
+    }).catch(err => handleError(err, chatId));
   });
 
   // *****************************
   //    shotgun
   // *****************************
-  bot.onText(/^shotgun\!/, function(msg) {
+  bot.onText(/\/shotgun/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
@@ -114,7 +127,7 @@ module.exports = function(bot) {
   // *****************************
   //    unshotgun
   // *****************************
-  bot.onText(/^unshotgun\!/, function(msg) {
+  bot.onText(/\/unshotgun/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
@@ -140,7 +153,7 @@ module.exports = function(bot) {
   // *****************************
   //    rdy!
   // *****************************
-  bot.onText(/^rdy\!/, function(msg) {
+  bot.onText(/\/rdy/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
@@ -170,7 +183,7 @@ module.exports = function(bot) {
   // *****************************
   //    undry
   // *****************************
-  bot.onText(/^unrdy\!/, function(msg) {
+  bot.onText(/\/unrdy/, function(msg) {
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 

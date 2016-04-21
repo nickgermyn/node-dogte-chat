@@ -7,10 +7,10 @@
 
 var User = require('../models/user');
 
-User.find({}).remove(function() {
-  User.create({
-    username  : 'Nick Germyn',
-    telegramId: 'telegram',
-    steamId: 'steam'
-  });
-});
+// User.find({}).remove(function() {
+//   User.create({
+//     username  : 'Nick Germyn',
+//     telegramId: 'telegram',
+//     steamId: 'steam'
+//   });
+// });

@@ -14,7 +14,11 @@ module.exports = function(bot) {
   bot.onText(/\/register (.+)/, function(msg, match) {
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
-    var userName = msg.from.userName;
+    var userName = msg.from.username;
+    var displayName = msg.from.first_name;
+    if(msg.from.last_name) {
+      displayName += ' ' + msg.from.last_name;
+    }
 
     var parts = match[1];
     console.log('parts: ' + parts);
@@ -36,6 +40,9 @@ module.exports = function(bot) {
             user.dotaBuffId = dotaBuffId;
           }
 
+          user.userName = userName;
+          user.displayName = displayName;
+
           user.save(function(err) {
             if(err) return handleError(err, chatId);
 
@@ -48,6 +55,7 @@ module.exports = function(bot) {
           User.create({
             telegramId: telegramId,
             userName: userName,
+            displayName: displayName,
             steamId: steamId,
             dotaBuffId: dotaBuffId
           }, function(err, createdItem) {

@@ -6,6 +6,7 @@ var mongoose = require('mongoose'),
 var userSchema = new Schema({
   telegramId: String,
   userName: String,
+  displayName: String,
   steamId: String,
   dotaBuffId: String
 });
