@@ -5,6 +5,7 @@
 'use strict';
 
 var User = require('../models/user');
+var Long = require('long');
 
 module.exports = function(bot) {
 
@@ -24,9 +25,16 @@ module.exports = function(bot) {
     console.log('parts: ' + parts);
     console.log('from: ', msg.from);
 
-    var steamId = getParam(parts, 'steam');
+    var steamIdStr = getParam(parts, 'steam');
     var dotaBuffId = getParam(parts, 'dotabuff');
 
+    // Take the bottom 32bits of the steamId
+    if(steamIdStr) {
+      console.log('steamid: ' + steamIdStr);
+      var steamIdLong = Long.fromString(steamIdStr);
+      var steamId = steamIdLong.low;
+      console.log('lowInt: ' + steamId);
+    }
     try {
       // Find game
       User.findOne({telegramId: telegramId}, function(err, user) {

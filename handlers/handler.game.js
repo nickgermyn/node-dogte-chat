@@ -4,6 +4,7 @@
 
 'use strict';
 
+var Promise = require('bluebird');
 var Game = require('../models/game');
 const noGame = 'No game scheduled for today';
 
@@ -75,24 +76,29 @@ module.exports = function(bot) {
     var a = Game.findOne({complete: false}).exec();
     var b = a.then(game => {
       if(game) {
-        return bot.sendMessage(chatId, 'Are you sure you wish to delete <details>?', {
+        var messageText = 'Are you sure you wish to delete the game at '+game.gameTime+' (yes/no)?';
+        return bot.sendMessage(chatId, messageText, {
           reply_markup: {
-            keyboard: [[{text: 'yes'}, {text: 'no'}]],
-            one_time_keyboard: true
-          },
-          reply_to_message_id: msg.message_id
-        })
+            force_reply: true
+          }
+        });
       }
       return null;
     });
 
     return Promise.join(a, b, (game, sent) => {
+      console.log('message sent: ',sent);
       if(!sent) {
         return bot.sendMessage(chatId, noGame);
       }
+      console.log('waiting for message reply');
       return bot.onReplyToMessage(chatId, sent.message_id, reply => {
+        console.log('reply received: '+reply.text);
         if(reply.text == 'yes') {
-          return game.removeAsync().then(() => bot.sendMessage(chatId, 'Dota event deleted'));
+          return Game.remove({ _id: game._id }).exec().then(() => {
+            bot.sendMessage(chatId, 'Dota event deleted');
+            console.log('dota event deleted');
+          });
         }
       });
     }).catch(err => handleError(err, chatId));

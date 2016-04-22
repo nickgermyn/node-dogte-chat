@@ -282,8 +282,8 @@ module.exports = function(bot) {
         //console.log('getting details for match: ', match.match_id);
         return da.getMatchDetailsAsync({match_id: match.match_id })
           .then(result => {
-            //console.log('matchDetails result: ', result);
             var matchDetails = JSON.parse(result).result;
+            //console.log('matchDetails.players', matchDetails.players);
             var players = matchDetails.players;
             var playersVal = getPlayerVal(players, accountId, attribute);
             //console.log('playersVal: ', playersVal);

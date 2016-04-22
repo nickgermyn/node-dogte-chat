@@ -20,9 +20,9 @@ gameSchema.methods.sendTimeUpdate = function(bot, chatId) {
   var gameTime = moment(this.gameTime);
 
   if(now > this.gameTime) {
-    when = 'Dota already began ' + moment().to(gameTime);
+    when = 'Dota already began at ' + gameTime.format('HH:mm') + ' (' + moment().to(gameTime) + ')';
   } else {
-    when = 'Dota will begin ' + moment().to(gameTime);
+    when = 'Dota will begin at ' + gameTime.format('HH:mm') + ' (' + moment().to(gameTime) + ')';
   }
   var response = when + '\n' + this.shotguns.join(', ');
   bot.sendMessage(chatId, response);
