@@ -20,6 +20,7 @@ require.extensions['.md'] = function(module, fileName) {
 
 // Connect to database
 mongoose.Promise = Promise;
+//mongoose.set('debug', true);
 mongoose.connect(config.mongo.uri, config.mongo.options);
 mongoose.connection.on('error', function(err) {
 	console.error('MongoDB connection error: ' + err);

@@ -22,19 +22,12 @@ module.exports = {
     },
 
     rebuild: function() {
-      console.log(' >rebuilding...');
+      console.log('>>rebuilding...');
 
-      var clearMatchesForUser = function(user) {
-        user.matches = [];
-        return user.save();
-      };
-
-      return User.find({}).exec()
-        .then(users => Promise.each(users, clearMatchesForUser))
-        .then(res => Match.remove({}).exec())
+      return Match.remove({}).exec()
         .then(res => console.log('cleared old data'))
         .then(() => this.checkRecentlyPlayed(100))
-        .then(() => console.log('Finished!'))
+        .then(() => console.log('Finished rebuilding!'))
         .catch(err => console.error('an error occurred', err));
     },
 
@@ -43,7 +36,7 @@ module.exports = {
     //  stored locally and downloads them
     // *****************************
     checkRecentlyPlayed: function(matchesRequested) {
-      console.log(' >checkRecentlyPlayed...');
+      console.log('>>checkRecentlyPlayed...');
       matchesRequested = matchesRequested || 25;
 
       var getRecentGames = function(user) {
@@ -116,24 +109,7 @@ module.exports = {
         });
 
         console.log('Saving match ' + match.matchId);
-        return match.save()
-          .then(m => {
-              // Add the match to the corresponding users
-              console.log('Adding match references to users for match ' + m.matchId);
-              var userSteamIds = m.players.map(p => p.accountId);
-              return User.find({ 'steamId' : { $in: userSteamIds }}).exec()
-                .then(users => Promise.each(users, u => {
-                  u.matches = u.matches || [];
-                  if(u.matches.indexOf(m._id) === -1) {
-                    console.log('Updating user ' + u.displayName);
-                    u.matches.push(m._id);
-                    return u.save();
-                  } else {
-                    console.log('Match already in users list');
-                  }
-                }))
-                .catch(err => console.error('Error updating users', err));
-          });
+        return match.save();
       }
 
       return User.find({ steamId: { $ne: null }}).exec()

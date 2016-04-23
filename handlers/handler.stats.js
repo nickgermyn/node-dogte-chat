@@ -171,10 +171,11 @@ module.exports = function(bot) {
   //    Get stats
   // *****************************
   bot.onText(/\/stats (\w+)/, function(msg, match) {
-    return statsService.getStatsForAttribute({
-        telegramId: msg.from.id,
-        attribute: match[1]
-      })
+    return User.findOne({ telegramId: msg.from.id }).exec()
+      .then(user => statsService.getStatsForAttribute({
+          steamId: user.steamId,
+          attribute: match[1]
+        }))
       .then(result => bot.sendMessage(msg.chat.id, statsService.format(result)))
       .catch(err => {
         console.error('an error occurred getting stats: ', err);

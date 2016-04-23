@@ -6,7 +6,6 @@
 
 var _ = require('lodash');
 var Promise = require('bluebird');
-var User = require('../models/user');
 var Match = require('../models/match');
 
 // *****************************
@@ -14,15 +13,9 @@ var Match = require('../models/match');
 //  returns a promise
 // *****************************
 var getStatsForAttribute = function(options) {
-  // Get the user
-  var whereClause = null;
-  if(options.userId) {
-    whereClause = { _id: options.userId };
-  } else if (options.telegramId) {
-    whereClause = { telegramId: options.telegramId };
-  } else { throw 'No user specified'; }
 
-  // Check attribute is set
+  // Check the appropriate options are set
+  if(!options.steamId) { throw 'No account specified'; }
   if(!options.attribute) { throw 'Attribute not specified'; }
   if(['kills', 'deaths', 'assists'].indexOf(options.attribute) === -1) { throw 'Invalid attribute specified'; }
   options.matches = options.matches || 25;
@@ -30,37 +23,53 @@ var getStatsForAttribute = function(options) {
   // **********************************
   // Gets the average of the specified user attribute over
   // the last X number of matches
-  var getUserStats = function(user) {
-    var theMatches = user.matches
-      .filter(m => m.players && m.players.length == 10)
-      .slice(0, options.matches)
-      .map(m => m.players.find(p => p.accountId == user.steamId));
+  var aggregate = function(matches) {
+    var sum = 0;
+    var max = 0;
+    var max_match = null;
+    var min = 999;
+    var min_match = null;
 
-    var sum = theMatches.reduce((prev,cur) => prev + cur[options.attribute], 0);
-    var avg = sum / theMatches.length;
-    var max = theMatches.reduce((prev,cur) => cur[options.attribute] > prev ? cur[options.attribute] : prev, 0);
-    var min = theMatches.reduce((prev,cur) => cur[options.attribute] < prev ? cur[options.attribute] : prev, 999);
+    for (var i = 0; i < matches.length; i++) {
+      var match = matches[i];
+      var attrVal = match.players[options.attribute];
+      var matchId = match.match_id;
+
+      sum += attrVal;
+      if(attrVal > max) {
+        max = attrVal;
+        max_match = matchId;
+      }
+      if(attrVal < min) {
+        min = attrVal;
+        min_match = matchId;
+      }
+    }
+
+    var avg = sum / matches.length;
+
     return {
-      user: {
-        userId: user._id,
-        steamId: user.steamId,
-        userName: user.userName,
-        displayName: user.displayName,
-        telegramId: user.telegramId
-      },
       attribute: options.attribute,
       sum: sum,
       average: avg,
       max: max,
+      maxMatch: max_match,
       min: min,
-      matches: theMatches.length
+      minMatch: min_match,
+      matches: matches.length
     };
   }
 
-  return User.findOne(whereClause)
-    .populate({ "path": "matches", "options" : { "skip": 0, "limit": 25 } })
+  return Match.aggregate()
+    .unwind('players')
+    .match({ 'players.accountId' : parseInt(options.steamId) })
+    .limit(options.matches)
     .exec()
-    .then(user => getUserStats(user));
+    .then(matches => aggregate(matches));
+  // return Match.find({ players: { $elemMatch: { accountId: options.steamId } } })
+  //   .limit(options.matches)
+  //   .exec()
+  //   .then(matches => aggregate(matches));
 };
 
 // *****************************
