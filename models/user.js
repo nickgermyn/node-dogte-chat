@@ -8,7 +8,8 @@ var userSchema = new Schema({
   userName: String,
   displayName: String,
   steamId: String,
-  dotaBuffId: String
+  dotaBuffId: String,
+  matches: [ {type: Schema.ObjectId, ref: 'Match' }]
 });
 
 module.exports = mongoose.model('User', userSchema);

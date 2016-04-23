@@ -10,6 +10,8 @@ var User = require('../models/user');
 var config = require('../config/environment');
 var da = Promise.promisifyAll(require('dota2-api').create(config.steam.apiKey));
 var fs = Promise.promisifyAll(require('fs'));
+var matchScraper = require('../tasks/task.matchScraper');
+var statsService = require('../services/statsService');
 
 module.exports = function(bot) {
 
@@ -154,17 +156,62 @@ module.exports = function(bot) {
       });
   });
 
+  // *****************************
+  //    Rebuild match database
+  // *****************************
+  bot.onText(/\/rebuild/, function(msg) {
+    return bot.sendMessage(msg.chat.id, 'Rebuilding match database. This may take a while...')
+      .then(() => matchScraper.rebuild())
+      .then(result => console.log('Rebuild complete'))
+      .then(() => bot.sendMessage(msg.chat.id, 'Rebuild complete!'))
+      .catch(err => console.error('an error occurred getting average: ', err));
+  });
+
+  // *****************************
+  //    Get stats
+  // *****************************
+  bot.onText(/\/stats (\w+)/, function(msg, match) {
+    return statsService.getStatsForAttribute({
+        telegramId: msg.from.id,
+        attribute: match[1]
+      })
+      .then(result => bot.sendMessage(msg.chat.id, statsService.format(result)))
+      .catch(err => {
+        console.error('an error occurred getting stats: ', err);
+        return bot.sendMessage(msg.chat.id, 'An error occurred');
+      });
+  });
+
   bot.onText(/\/test/, function(msg) {
     // getSum(1401151, 7, 'deaths')
     //   .then(function(result) {
     //     console.log('sum: ', result);
     //   });
 
-    valRank('deaths')
-      .then(function(result) {
-        console.log('valRank: ', result);
-      });
+    // valRank('deaths')
+    //   .then(function(result) {
+    //     console.log('valRank: ', result);
+    //   });
 
+    // matchScraper.checkRecentlyPlayed(25)
+    //   .then(r => console.log('finished checking matches played'))
+    //   .catch(err => console.error('An error occurred: ' + err));
+
+    var getDeaths = statsService.getStatsForAttribute({
+        telegramId: msg.from.id,
+        attribute: 'deaths'
+      });
+    var getKills = statsService.getStatsForAttribute({
+      telegramId: msg.from.id,
+      attribute: 'kills'
+    });
+
+    Promise.join(getKills, getDeaths, (kills, deaths) => {
+        console.log('kills: ' + kills.sum + ' min: ' + kills.min + ' max: ' + kills.max);
+        console.log('deaths: ' + deaths.sum + ' min: ' + deaths.min + ' max: ' + deaths.max);
+        console.log('k/d ratio: ' + kills.sum/deaths.sum);
+      })
+      .catch(err => console.error('an error occurred getting stats: ', err));
   });
 
   // *****************************
