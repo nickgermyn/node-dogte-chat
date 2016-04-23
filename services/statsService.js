@@ -63,6 +63,7 @@ var getStatsForAttribute = function(options) {
   return Match.aggregate()
     .unwind('players')
     .match({ 'players.accountId' : parseInt(options.steamId) })
+    .sort({ 'startTime': -1 })
     .limit(options.matches)
     .exec()
     .then(matches => aggregate(matches));
