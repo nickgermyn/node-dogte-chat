@@ -141,7 +141,7 @@ module.exports = function(bot) {
   // *****************************
   //    rdy
   // *****************************
-  bot.onText(/\/rdy/, function(msg) {
+  bot.onText(/\/(rdy|ready)/, function(msg) {
     winston.info('handler.game - rdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -160,7 +160,7 @@ module.exports = function(bot) {
   // *****************************
   //    undry
   // *****************************
-  bot.onText(/\/unrdy/, function(msg) {
+  bot.onText(/\/un(rdy|ready)/, function(msg) {
     winston.info('handler.game - unrdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;

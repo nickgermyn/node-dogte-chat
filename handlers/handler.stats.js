@@ -174,13 +174,13 @@ module.exports = function(bot) {
   bot.onText(/\/stats\s*(\w*)/, function(msg, match) {
     var getAllStats = function() {
       console.log('Getting all stats for user: ' + msg.from.username);
-      return User.findOne({ telegramId: msg.from.id }).exec()
-        .then(user => Promise.map(statsService.validAttributes, attr => statsService.getStatsForAttribute({
+      var a = User.findOne({ telegramId: msg.from.id }).exec();
+      var b = a.then(user => Promise.map(statsService.validAttributes, attr => statsService.getStatsForAttribute({
             steamId: user.steamId,
             attribute: attr
-          })))
-        .then(results => {
-          var response = '*STATS OVER LAST 25 GAMES*\n';
+          })));
+      return Promise.join(a, b, (user,results) => {
+          var response = '*STATS FOR ' + user.displayName + ' OVER LAST 25 GAMES*\n';
           response += results.map(r => statsService.formatSingleLine(r) + '\n')
           return bot.sendMessage(msg.chat.id, response, { parse_mode: 'Markdown'});
         })
