@@ -8,6 +8,7 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var Match = require('../models/match');
 
+var validAttributes = ['kills', 'deaths', 'assists'];
 // *****************************
 //  Get statistics for a specified attribute
 //  returns a promise
@@ -17,7 +18,7 @@ var getStatsForAttribute = function(options) {
   // Check the appropriate options are set
   if(!options.steamId) { throw 'No account specified'; }
   if(!options.attribute) { throw 'Attribute not specified'; }
-  if(['kills', 'deaths', 'assists'].indexOf(options.attribute) === -1) { throw 'Invalid attribute specified'; }
+  if(validAttributes.indexOf(options.attribute) === -1) { throw 'Invalid attribute specified'; }
   options.matches = options.matches || 25;
 
   // **********************************
@@ -80,8 +81,17 @@ var getStatsForAttribute = function(options) {
 var format = function(result) {
   return result.attribute + ' in last ' + result.matches + ' matches\n Total: ' + result.sum + '\n Min: ' + result.min + '\n Max: ' + result.max + '\n Average: ' + result.average;
 };
+// *****************************
+//  Formats the response of the getStats method on a single line
+//  returns a string
+// *****************************
+var formatSingleLine = function(result) {
+  return '*' + result.attribute + '*: Total: '+ result.sum + ' Min: ' + result.min + ' Max: ' + result.max + ' Avg: ' + result.average;
+};
 
 module.exports = {
   getStatsForAttribute: getStatsForAttribute,
-  format: format
+  validAttributes: validAttributes,
+  format: format,
+  formatSingleLine: formatSingleLine
 }

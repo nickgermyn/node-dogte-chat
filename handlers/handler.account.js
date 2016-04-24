@@ -6,6 +6,7 @@
 
 var User = require('../models/user');
 var Long = require('long');
+var winston = require('winston');
 
 module.exports = function(bot) {
 
@@ -13,6 +14,7 @@ module.exports = function(bot) {
   //    Register account
   // *****************************
   bot.onText(/\/register (.+)/, function(msg, match) {
+    winston.info('handler.account - register command received');
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
     var userName = msg.from.username;
@@ -22,23 +24,22 @@ module.exports = function(bot) {
     }
 
     var parts = match[1];
-    console.log('parts: ' + parts);
-    console.log('from: ', msg.from);
+    winston.debug('parts: ' + parts);
+    winston.debug('from: ', msg.from);
 
     var steamIdStr = getParam(parts, 'steam');
     var dotaBuffId = getParam(parts, 'dotabuff');
 
     // Take the bottom 32bits of the steamId
     if(steamIdStr) {
-      console.log('steamid: ' + steamIdStr);
+      winston.debug('steamid: ' + steamIdStr);
       var steamIdLong = Long.fromString(steamIdStr);
       var steamId = steamIdLong.low;
-      console.log('lowInt: ' + steamId);
+      winston.debug('lowInt: ' + steamId);
     }
-    try {
-      // Find game
-      User.findOne({telegramId: telegramId}, function(err, user) {
-        if(err) return handleError(err, chatId);
+    // Find game
+    return User.findOne({telegramId: telegramId}).exec()
+      .then(user => {
         if(user) {
           // Update the existing user
           if(steamId) {
@@ -51,59 +52,47 @@ module.exports = function(bot) {
           user.userName = userName;
           user.displayName = displayName;
 
-          user.save(function(err) {
-            if(err) return handleError(err, chatId);
-
-            // Send message indicating so
-            bot.sendMessage(chatId, 'Account updated!');
-          });
-
+          return user.save()
+            .then(saved => bot.sendMessage(chatId, 'Account updated!'));
         } else {
           // Create a new user
-          User.create({
+          user = new User({
             telegramId: telegramId,
             userName: userName,
             displayName: displayName,
             steamId: steamId,
             dotaBuffId: dotaBuffId
-          }, function(err, createdItem) {
-            if(err) return handleError(err, chatId);
-
-            // Send message about game creation
-            bot.sendMessage(chatId, 'Account created!');
           });
+
+          return user.save()
+            .then(saved => bot.sendMessage(chatId, 'Account created!'));
         }
-      });
-    } catch (e) {
-      bot.sendMessage(chatId, 'There was an error creating account');
-      console.error(e)
-    }
+    }).catch(err => handleError(err, chatId, 'There was an error creating account'));
   });
 
   // *****************************
   //    Get account
   // *****************************
   bot.onText(/\/account/, function(msg) {
+    winston.info('handler.account - account query received');
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
     var userName = msg.from.userName;
 
     // Find account
-    User.findOne({telegramId: telegramId}, function(err, user) {
-      if(err) return handleError(err, chatId);
-      if(user) {
-        bot.sendMessage(chatId, JSON.stringify(user));
-      } else {
-        bot.sendMessage(chatId, 'Could not find account. Have you registered?');
-      }
-    });
+    User.findOne({telegramId: telegramId}).exec()
+      .then(user => {
+        if(!user) { bot.sendMessage(chatId, 'Could not find account. Have you registered?'); }
+        return bot.sendMessage(chatId, JSON.stringify(user));
+      }).catch(err => handleError(err, chatId));
   });
-
 
   // *****************************
   // Error handler
-  function handleError(err, chatId) {
-    console.error(err);
+  function handleError(err, chatId, msg) {
+    winston.error('An error occurred: ',err);
+    msg = msg || 'Oh noes! An error occurred';
+    return bot.sendMessage(chatId, msg+': \n'+err);
   }
 
   // *****************************

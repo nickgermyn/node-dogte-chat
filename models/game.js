@@ -115,7 +115,7 @@ gameSchema.methods.shouldBeNotified = function() {
   var gameTime = moment(this.gameTime);
   var now = moment();
 
-  return now.add(15, 'minutes').isAfter(gameTime);
+  return now.add(16, 'minutes').isAfter(gameTime);
 }
 gameSchema.methods.timeToStart = function() {
   var gameTime = moment(this.gameTime);

@@ -6,6 +6,8 @@
 
 var Promise = require('bluebird');
 var Game = require('../models/game');
+var winston = require('winston');
+
 const noGame = 'No game scheduled for today';
 
 module.exports = function(bot) {
@@ -14,6 +16,7 @@ module.exports = function(bot) {
   //    Game creation / reschedule
   // *****************************
   bot.onText(/\/(dota|dogte|dotes) (.+)/, function(msg, match) {
+    winston.info('handler.game - game creation request received');
     var chatId = msg.chat.id;
     var details = match[2];
     var userName = msg.from.username;
@@ -32,44 +35,38 @@ module.exports = function(bot) {
     }
 
     // Find game
-    Game.findOne({complete: false}, function(err, game) {
-      if(err) return handleError(err, chatId);
-      if(game) {
-        // Update the existing game
-        game.gameTime = gameTime;
-        game.notified = false;
-        game.shotgun(userName);
+    return Game.findOne({complete: false}).exec()
+      .then(game => {
+        if(game) {
+          // Update the existing game
+          winston.info(' Game already exists. Updating');
+          game.gameTime = gameTime;
+          game.notified = false;
+          game.shotgun(userName);
 
-        game.save(function(err) {
-          if(err) return handleError(err, chatId);
-
-          // Send message indicating so
-          bot.sendMessage(chatId, 'Dogte time modified').then(function() {
-            game.sendTimeUpdate(bot, chatId);
+          winston.info(' saving...');
+          return game.save()
+            .then(saved => bot.sendMessage(chatId, 'Dogte time modified'))
+            .then(sent => game.sendTimeUpdate(bot, chatId));
+        } else {
+          // Create a new game
+          game = new Game({
+            gameTime: gameTime,
+            chatId: chatId,
+            complete: false,
+            shotguns: [userName]
           });
-        });
-
-      } else {
-        // Create a new game
-        Game.create({
-          gameTime: gameTime,
-          chatId: chatId,
-          complete: false,
-          shotguns: [userName]
-        }, function(err, createdItem) {
-          if(err) return handleError(err, chatId);
-
-          // Send message about game creation
-          createdItem.sendTimeUpdate(bot, chatId);
-        });
-      }
-    });
+          return game.save()
+            .then(sent => game.sendTimeUpdate(bot, chatId));
+        }
+      }).catch(err => handleError(err, chatId));
   });
 
   // *****************************
   //    Delete game
   // *****************************
   bot.onText(/\/delete_(dota|dogte|dotes)/, function(msg) {
+    winston.info('handler.game - game deletion request received');
     var chatId = msg.chat.id;
 
     // Find game
@@ -87,17 +84,16 @@ module.exports = function(bot) {
     });
 
     return Promise.join(a, b, (game, sent) => {
-      console.log('message sent: ',sent);
       if(!sent) {
         return bot.sendMessage(chatId, noGame);
       }
-      console.log('waiting for message reply');
+      winston.info(' waiting for message reply');
       return bot.onReplyToMessage(chatId, sent.message_id, reply => {
-        console.log('reply received: '+reply.text);
+        winston.info(' reply received: '+reply.text);
         if(reply.text == 'yes') {
           return Game.remove({ _id: game._id }).exec().then(() => {
             bot.sendMessage(chatId, 'Dota event deleted');
-            console.log('dota event deleted');
+            winston.info(' dota event deleted!');
           });
         }
       });
@@ -108,114 +104,89 @@ module.exports = function(bot) {
   //    shotgun
   // *****************************
   bot.onText(/\/shotgun/, function(msg) {
+    winston.info('handler.game - shotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
     // Find game
-    Game.findOne({complete: false}, function(err, game) {
-      if(err) return handleError(err, chatId);
-      if(game) {
+    return Game.findOne({complete: false}).exec()
+      .then(game => {
+        if(!game) { return bot.sendMessage(chatId, noGame); }
         game.shotgun(userName);
 
-        game.save(function(err) {
-          if(err) return handleError(err, chatId);
-
-          // Send update
-          game.sendShotgunUpdate(bot, chatId);
-        });
-
-      } else {
-        bot.sendMessage(chatId, noGame);
-      }
-    });
+        return game.save()
+          .then(saved => game.sendShotgunUpdate(bot, chatId));
+      }).catch(err => handleError(err, chatId));
   });
 
   // *****************************
   //    unshotgun
   // *****************************
   bot.onText(/\/unshotgun/, function(msg) {
+    winston.info('handler.game - unshotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
     // Find game
-    Game.findOne({complete: false}, function(err, game) {
-      if(err) return handleError(err, chatId);
-      if(game) {
+    return Game.findOne({complete: false}).exec()
+      .then(game => {
+        if(!game) { return bot.sendMessage(chatId, noGame); }
+
         game.unshotgun(userName);
-
-        game.save(function(err) {
-          if(err) return handleError(err, chatId);
-
-          // Send update
-          bot.sendMessage(chatId, userName + ', your shotgun has been cancelled');
-        });
-
-      } else {
-        bot.sendMessage(chatId, noGame);
-      }
-    });
+        return game.save()
+          .then(saved => bot.sendMessage(chatId, userName + ', your shotgun has been cancelled'));
+      }).catch(err => handleError(err, chatId));
   });
 
   // *****************************
-  //    rdy!
+  //    rdy
   // *****************************
   bot.onText(/\/rdy/, function(msg) {
+    winston.info('handler.game - rdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
     // Find game
-    Game.findOne({complete: false}, function(err, game) {
-      if(err) return handleError(err, chatId);
-      if(game) {
+    return Game.findOne({complete: false}).exec()
+      .then(game => {
+        if(!game) { return bot.sendMessage(chatId, noGame); }
+
         var response = game.readyup(userName);
-
-        game.save(function(err) {
-          if(err) return handleError(err, chatId);
-
-          // Send update
-          game.sendReadyupUpdate(bot, chatId).then(function() {
+        return game.save()
+          .then(saved => game.sendReadyupUpdate(bot, chatId))
+          .then(sent => {
             if(response.shotgun) {
-                bot.sendMessage(chatId, '(... and I\'ve also shotgunned you)');
+                return bot.sendMessage(chatId, '(... and I\'ve also shotgunned you)');
             }
           });
-        });
-
-      } else {
-        bot.sendMessage(chatId, noGame);
-      }
-    });
+      }).catch(err => handleError(err, chatId));
   });
 
   // *****************************
   //    undry
   // *****************************
   bot.onText(/\/unrdy/, function(msg) {
+    winston.info('handler.game - unrdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
 
     // Find game
-    Game.findOne({complete: false}, function(err, game) {
-      if(err) return handleError(err, chatId);
-      if(game) {
+    return Game.findOne({complete: false}).exec()
+      .then(game => {
+        if(!game) { return bot.sendMessage(chatId, noGame); }
+
         game.unreadyup(userName);
-
-        game.save(function(err) {
-          if(err) return handleError(err, chatId);
-
-          // Send update
-          bot.sendMessage(chatId, userName + ', your rdy has been cancelled');
-        });
-
-      } else {
-        bot.sendMessage(chatId, noGame);
-      }
-    });
+        return game.save()
+          .then(saved => bot.sendMessage(chatId, userName + ', your rdy has been cancelled'));
+      }).catch(err => handleError(err, chatId));
   });
 
   // *****************************
   // Error handler
-  function handleError(err, chatId) {
-    console.error(err);
+  function handleError(err, chatId, msg) {
+    winston.error('An error occurred: ',err);
+    msg = msg || 'Oh noes! An error occurred';
+    return bot.sendMessage(chatId, msg+': \n'+err);
   }
 
   // *****************************

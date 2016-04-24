@@ -170,11 +170,41 @@ module.exports = function(bot) {
   // *****************************
   //    Get stats
   // *****************************
-  bot.onText(/\/stats (\w+)/, function(msg, match) {
+  bot.onText(/\/stats\s*(\w*)/, function(msg, match) {
+    var getAllStats = function() {
+      console.log('Getting all stats for user: ' + msg.from.username);
+      return User.findOne({ telegramId: msg.from.id }).exec()
+        .then(user => Promise.map(statsService.validAttributes, attr => statsService.getStatsForAttribute({
+            steamId: user.steamId,
+            attribute: attr
+          })))
+        .then(results => {
+          var response = '*STATS OVER LAST 25 GAMES*\n';
+          response += results.map(r => statsService.formatSingleLine(r) + '\n')
+          return bot.sendMessage(msg.chat.id, response, { parse_mode: 'Markdown'});
+        })
+        .catch(err => {
+          console.error('an error occurred getting stats: ', err);
+          return bot.sendMessage(msg.chat.id, 'An error occurred');
+        });
+    };
+
+    var statType = match[1];
+    // If not stat type is specified, then get all
+    if(!statType) {
+      return getAllStats();
+    }
+
+    // Otherwise, check that it is valid
+    if(statsService.validAttributes.indexOf(statType) === -1) {
+      console.log('Invalid stat requested: ' + statType);
+      return bot.sendMessage(msg.chat.id, 'Invalid stat requested');
+    }
+
     return User.findOne({ telegramId: msg.from.id }).exec()
       .then(user => statsService.getStatsForAttribute({
           steamId: user.steamId,
-          attribute: match[1]
+          attribute: statType
         }))
       .then(result => bot.sendMessage(msg.chat.id, statsService.format(result)))
       .catch(err => {

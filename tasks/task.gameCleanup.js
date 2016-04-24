@@ -1,13 +1,11 @@
 /**
- * Dota game organisation handlers
+ * Dota game cleanup and notification task
  */
 
 'use strict';
 
 var schedule = require('node-schedule');
-
 var Game = require('../models/game');
-const noGame = 'No game scheduled for today';
 
 module.exports = {
   schedule: function(bot) {
@@ -21,31 +19,32 @@ module.exports = {
     //    Checks for incomplete games that need cleanup
     // *****************************
     function checkGame() {
-      console.log(' >checking game...');
+      console.log('>>checking games for cleanup and notificaiton...');
 
       // Check for game
-      Game.findOne({complete: false}, function(err, game) {
-        if(err) return handleError(err, chatId);
-        if(game && game.hasExpired()) {
-          game.complete = true;
-          game.save(function(err) {
-            if(err) return handleError(err, chatId);
-            console.log('game ' + game._id + ' cleaned up');
-          });
-        }
-
-        if(game && game.shouldBeNotified()) {
-          var timeToStart = game.timeToStart();
-          if(game.chatId) {
-            bot.sendMessage(game.chatId, 'Dota will begin '+timeToStart+'. Man up!');
+      Game.findOne({complete: false}).exec()
+        .then(game => {
+          if(game && game.hasExpired()) {
+            game.complete = true;
+            game.save(function(err) {
+              if(err) return handleError(err, chatId);
+              console.log('game ' + game._id + ' cleaned up');
+            });
           }
-          game.notified = true;
-          game.save(function(err) {
-            if(err) return handleError(err, chatId);
-            console.log('game ' + game._id + ' notified');
-          });
-        }
-      });
+
+          if(game && game.shouldBeNotified()) {
+            var timeToStart = game.timeToStart();
+            if(game.chatId) {
+              bot.sendMessage(game.chatId, 'Dota will begin '+timeToStart+'. Man up!');
+            }
+            game.notified = true;
+            game.save(function(err) {
+              if(err) return handleError(err, chatId);
+              console.log('game ' + game._id + ' notified');
+            });
+          }
+        })
+        .catch(err => console.error('Error in checking game status:', err));
     }
 
     // *****************************

@@ -5,21 +5,36 @@
 'use strict';
 
 var Game = require('../models/game');
+var path = require('path');
+var winston = require('winston');
+
 const noGame = 'No game scheduled today';
 
 module.exports = function(bot) {
 
   // *****************************
-  //    Stack query
+  // gAM!
   // *****************************
   bot.onText(/GAM!/, function(msg) {
     var chatId = msg.chat.id;
-    bot.sendMessage(chatId, '@Chicken_Lips GAM!');
+    return bot.sendMessage(chatId, '@Chicken_Lips GAM!');
+  });
+
+  // *****************************
+  //    Percent man picture
+  // *****************************
+  bot.onText(/\/percentman/, function(msg) {
+    var chatId = msg.chat.id;
+    var photo = path.join(__dirname, '../resources/percentman.jpg');
+    winston.info(photo);
+    return bot.sendPhoto(chatId, photo);
   });
 
   // *****************************
   // Error handler
-  function handleError(err, chatId) {
-    console.error(err);
+  function handleError(err, chatId, msg) {
+    winston.error('An error occurred: ',err);
+    msg = msg || 'Oh noes! An error occurred';
+    return bot.sendMessage(chatId, msg+': \n'+err);
   }
 }
