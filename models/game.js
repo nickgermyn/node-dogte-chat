@@ -55,7 +55,7 @@ gameSchema.methods.sendStackUpdate = function(bot, chatId) {
     bot.sendMessage(chatId, msg + ': \n' + err);
   }
 
-  if(shotCount == 5 || true) {
+  if(shotCount == 5) {
     // == 5
       return sendPhoto().then(resp => {
         var response = '5mahn with: \n' + this.shotguns.join(', ') + '\n';
