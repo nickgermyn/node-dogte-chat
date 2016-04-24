@@ -134,6 +134,7 @@ module.exports = function(bot) {
     var telegramId = msg.from.id;
     var userName = msg.from.userName;
 
+    return bot.sendMessage(chatId, 'Not currently supported!');
     bot.sendMessage(chatId, '*RETRIEVING FEEDING DATA*\nOne moment please.', { parse_mode: 'Markdown' });
     var update = /update/.test(msg.text);
 
