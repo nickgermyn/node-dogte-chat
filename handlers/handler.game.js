@@ -153,12 +153,7 @@ module.exports = function(bot) {
 
         var response = game.readyup(userName);
         return game.save()
-          .then(saved => game.sendReadyupUpdate(bot, chatId))
-          .then(sent => {
-            if(response.shotgun) {
-                return bot.sendMessage(chatId, '(... and I\'ve also shotgunned you)');
-            }
-          });
+          .then(saved => game.sendStackUpdate(bot, chatId));
       }).catch(err => handleError(err, chatId));
   });
 

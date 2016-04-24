@@ -3,6 +3,7 @@
 var mongoose = require('mongoose'),
   Schema = mongoose.Schema;
 var moment = require('moment');
+var winston = require('winston');
 
 var gameSchema = new Schema({
   gameTime: Date,
@@ -13,6 +14,7 @@ var gameSchema = new Schema({
   shotguns: [String],
   rdys: [String]
 });
+var file_id = null;
 
 gameSchema.methods.sendTimeUpdate = function(bot, chatId) {
   var now = new Date();
@@ -32,19 +34,44 @@ gameSchema.methods.sendStackUpdate = function(bot, chatId) {
 
   var rdyCount = this.rdys.length;
   var shotCount = this.shotguns.length;
-  var response = '';
 
-  if(shotCount == 5) {
-    response = '%mahn with: \n' + this.shotguns.join(', ') + '\n';
-    response = response + 'Currently ready: \n' + this.rdys.join(', ');
-  } else if (shotCount < 5) {
-    response = 'No stack yet. Shotgunned: \n' + this.shotguns.join(', ') + '\n';
-    response = response + 'Currently ready: \n' + this.rdys.join(', ');
-  } else {
-    response = 'Too many bros: \n' + this.shotguns.join(', ') + '\n';
+  var sendPhoto = function() {
+    if(file_id)
+      return bot.sendPhoto(chatId, file_id).catch(err => {
+        winston.warning('failed to send photo via file_id');
+        file_id = null;
+      });
+
+    var photo = __dirname + '/../resources/percentman.jpg';
+    winston.info(photo);
+    return bot.sendPhoto(chatId, photo).then(resp => {
+      file_id = resp.photo[0].file_id;
+    });
   }
 
-  bot.sendMessage(chatId, response);
+  var handleError = function(err, chatId, msg) {
+    msg = msg || 'Oh noes! An error occurred';
+    winston.error(msg, err);
+    bot.sendMessage(chatId, msg + ': \n' + err);
+  }
+
+  if(shotCount == 5 || true) {
+    // == 5
+      return sendPhoto().then(resp => {
+        var response = '5mahn with: \n' + this.shotguns.join(', ') + '\n';
+        response += '\nCurrently ready: \n' + this.rdys.join(', ');
+        return bot.sendMessage(chatId, response);
+      }).catch(err => handleError(err, chatId));
+  } else if (shotCount < 5) {
+    // < 5
+    var response = 'No stack yet. Shotgunned: \n' + this.shotguns.join(', ') + '\n';
+    response += '\nCurrently ready: \n' + this.rdys.join(', ');
+    return bot.sendMessage(chatId, response);
+  } else {
+    // > 5
+    var response = 'Too many bros: \n' + this.shotguns.join(', ') + '\n';
+    return bot.sendMessage(chatId, response);
+  }
 }
 
 gameSchema.methods.sendShotgunUpdate = function(bot, chatId) {

@@ -25,9 +25,12 @@ module.exports = function(bot) {
   // *****************************
   bot.onText(/\/percentman/, function(msg) {
     var chatId = msg.chat.id;
-    var photo = path.join(__dirname, '../resources/percentman.jpg');
-    winston.info(photo);
-    return bot.sendPhoto(chatId, photo);
+    //var photo = path.join(__dirname, '../resources/percentman.jpg');
+    //winston.info(photo);
+
+    // Updated to use file id instead
+    const file_id = 'AgADBQADqqcxGyhaOAvdebg3tenAnnOyvzIABFUjwhiwDPp9UTQAAgI';
+    return bot.sendPhoto(chatId, file_id);
   });
 
   // *****************************
