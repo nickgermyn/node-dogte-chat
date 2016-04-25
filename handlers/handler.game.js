@@ -20,6 +20,10 @@ module.exports = function(bot) {
     var chatId = msg.chat.id;
     var details = match[2];
     var userName = msg.from.username;
+    var displayName = msg.from.first_name;
+    if(msg.from.last_name) {
+      displayName += ' ' + msg.from.last_name;
+    }
 
     // Parse dates and users
     var time = getTime(details);
@@ -42,7 +46,7 @@ module.exports = function(bot) {
           winston.info(' Game already exists. Updating');
           game.gameTime = gameTime;
           game.notified = false;
-          game.shotgun(userName);
+          game.shotgun(displayName);
 
           winston.info(' saving...');
           return game.save()
@@ -54,7 +58,7 @@ module.exports = function(bot) {
             gameTime: gameTime,
             chatId: chatId,
             complete: false,
-            shotguns: [userName]
+            shotguns: [displayName]
           });
           return game.save()
             .then(sent => game.sendTimeUpdate(bot, chatId));
@@ -107,12 +111,16 @@ module.exports = function(bot) {
     winston.info('handler.game - shotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
+    var displayName = msg.from.first_name;
+    if(msg.from.last_name) {
+      displayName += ' ' + msg.from.last_name;
+    }
 
     // Find game
     return Game.findOne({complete: false}).exec()
       .then(game => {
         if(!game) { return bot.sendMessage(chatId, noGame); }
-        game.shotgun(userName);
+        game.shotgun(displayName);
 
         return game.save()
           .then(saved => game.sendShotgunUpdate(bot, chatId));
@@ -126,15 +134,19 @@ module.exports = function(bot) {
     winston.info('handler.game - unshotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
+    var displayName = msg.from.first_name;
+    if(msg.from.last_name) {
+      displayName += ' ' + msg.from.last_name;
+    }
 
     // Find game
     return Game.findOne({complete: false}).exec()
       .then(game => {
         if(!game) { return bot.sendMessage(chatId, noGame); }
 
-        game.unshotgun(userName);
+        game.unshotgun(displayName);
         return game.save()
-          .then(saved => bot.sendMessage(chatId, userName + ', your shotgun has been cancelled'));
+          .then(saved => bot.sendMessage(chatId, displayName + ', your shotgun has been cancelled'));
       }).catch(err => handleError(err, chatId));
   });
 
@@ -145,13 +157,17 @@ module.exports = function(bot) {
     winston.info('handler.game - rdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
+    var displayName = msg.from.first_name;
+    if(msg.from.last_name) {
+      displayName += ' ' + msg.from.last_name;
+    }
 
     // Find game
     return Game.findOne({complete: false}).exec()
       .then(game => {
         if(!game) { return bot.sendMessage(chatId, noGame); }
 
-        var response = game.readyup(userName);
+        var response = game.readyup(displayName);
         return game.save()
           .then(saved => game.sendStackUpdate(bot, chatId));
       }).catch(err => handleError(err, chatId));
@@ -164,15 +180,19 @@ module.exports = function(bot) {
     winston.info('handler.game - unrdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
+    var displayName = msg.from.first_name;
+    if(msg.from.last_name) {
+      displayName += ' ' + msg.from.last_name;
+    }
 
     // Find game
     return Game.findOne({complete: false}).exec()
       .then(game => {
         if(!game) { return bot.sendMessage(chatId, noGame); }
 
-        game.unreadyup(userName);
+        game.unreadyup(displayName);
         return game.save()
-          .then(saved => bot.sendMessage(chatId, userName + ', your rdy has been cancelled'));
+          .then(saved => bot.sendMessage(chatId, displayName + ', your rdy has been cancelled'));
       }).catch(err => handleError(err, chatId));
   });
 
