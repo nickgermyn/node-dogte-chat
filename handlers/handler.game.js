@@ -208,7 +208,7 @@ module.exports = function(bot) {
   // Time parser
   function getTime(msg) {
     var replaced = msg.replace(/:|\.|;|-/gi, '');
-    var match = /at\s*(\w+)/.exec(replaced);
+    var match = /(?:at)\s*(\d{4})/.exec(replaced);
     if(match) {
       return match[1];
     } else {
