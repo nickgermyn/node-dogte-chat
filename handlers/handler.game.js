@@ -33,9 +33,8 @@ module.exports = function(bot) {
       gameTime.setMinutes(time.substring(2,4));
       gameTime.setSeconds(0);
     } else {
-      gameTime.setHours(19);
-      gameTime.setMinutes(30);
-      gameTime.setSeconds(0);
+      // no valid time found, let the user know
+      return bot.sendMessage(chatId, 'Unrecognised command. Usage example: `/dota at 1730`');
     }
 
     // Find game
@@ -208,7 +207,7 @@ module.exports = function(bot) {
   // Time parser
   function getTime(msg) {
     var replaced = msg.replace(/:|\.|;|-/gi, '');
-    var match = /at\s*(\w+)/.exec(replaced);
+    var match = /(?:at)\s*(\d{4})/.exec(replaced);
     if(match) {
       return match[1];
     } else {
