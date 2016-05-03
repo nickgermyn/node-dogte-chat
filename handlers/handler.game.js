@@ -15,7 +15,7 @@ module.exports = function(bot) {
   // *****************************
   //    Game creation / reschedule
   // *****************************
-  bot.onText(/^\/dog?t[ea]s?(?:@\w*)?\b\s*(.+)/i, function(msg, match) {
+  bot.onText(/^\/dog?t[ea]s?(?:@\w*)?\b\s*(?=(?:.*\b(\d{2})[:.;-]?(\d{2})\b)?)/i, function(msg, match) {
     winston.info('handler.game - game creation request received');
     var chatId = msg.chat.id;
     var details = match[2];
@@ -25,17 +25,15 @@ module.exports = function(bot) {
       displayName += ' ' + msg.from.last_name;
     }
 
-    // Parse dates and users
-    var time = getTime(details);
-    var gameTime = new Date();
-    if(time) {
-      gameTime.setHours(time.substring(0,2));
-      gameTime.setMinutes(time.substring(2,4));
-      gameTime.setSeconds(0);
-    } else {
+    if (!match[1] && !match[2]) {
       // no valid time found, let the user know
       return bot.sendMessage(chatId, 'Unrecognised command. Usage example: `/dota at 1730`');
     }
+
+    var gameTime = new Date();
+    if (match[1]) gameTime.setHours(match[1]);
+    if (match[2]) gameTime.setHours(match[2]);
+    gameTime.setSeconds(0);
 
     // Find game
     return Game.findOne({complete: false}).exec()
@@ -201,17 +199,5 @@ module.exports = function(bot) {
     winston.error('An error occurred: ',err);
     msg = msg || 'Oh noes! An error occurred';
     return bot.sendMessage(chatId, msg+': \n'+err);
-  }
-
-  // *****************************
-  // Time parser
-  function getTime(msg) {
-    var replaced = msg.replace(/:|\.|;|-/gi, '');
-    var match = /(?:at)\s*(\d{4})/.exec(replaced);
-    if(match) {
-      return match[1];
-    } else {
-      return null;
-    }
   }
 }
