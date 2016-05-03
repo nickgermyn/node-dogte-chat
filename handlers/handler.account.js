@@ -88,6 +88,45 @@ module.exports = function(bot) {
   });
 
   // *****************************
+  //    Delete account
+  // *****************************
+  bot.onText(/^\/delete_account(?:@\w*)?/i, function(msg) {
+    winston.info('handler.account - delete account query received');
+    var chatId = msg.chat.id;
+    var telegramId = msg.from.id;
+
+    var a = User.findOne({ telegramId: telegramId }).exec();
+    var b = user.then(user => {
+      if (user) {
+        var messageText = 'Are you sure you wish to delete your account? (yes/no)';
+        return bot.sendMessage(chatId, messageText, {
+          reply_markup: {
+            force_reply: true,
+            selective: true
+          }
+        });
+      }
+      return null;
+    });
+
+    return Promise.join(a, b, (user, sent) => {
+      if (!sent) {
+        return bot.sendMessage(chatId, 'No account details found.');
+      }
+      winston.info(' waiting for account delete message reply');
+      return bot.onReplyToMessage(chatId, send.message_id, reply => {
+        winston.info(' reply received: ' + reply.text);
+        if (/(?:ye*(?:[ps]*)|(?:ah))|(?:sure)|(?:o?k+)/i.exec(reply.text)) {
+          return User.remove({ _id: user._id }).exec().then(() => {
+            bot.sendMessage(chatId, 'Account deleted');
+            winston.info(' account deleted!');
+          });
+        }
+      });
+    }).catch(err => handleError(err, chatId));
+  });
+
+  // *****************************
   // Error handler
   function handleError(err, chatId, msg) {
     winston.error('An error occurred: ',err);
