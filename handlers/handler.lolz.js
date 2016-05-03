@@ -15,7 +15,7 @@ module.exports = function(bot) {
   // *****************************
   // gAM!
   // *****************************
-  bot.onText(/GAM!/, function(msg) {
+  bot.onText(/^\/game?!?(?:@\w*)?/i, function(msg) {
     var chatId = msg.chat.id;
     return bot.sendMessage(chatId, '@Chicken_Lips GAM!');
   });
@@ -23,7 +23,7 @@ module.exports = function(bot) {
   // *****************************
   //    Percent man picture
   // *****************************
-  bot.onText(/\/percentman/, function(msg) {
+  bot.onText(/^\/percentman(?:@\w*)?/i, function(msg) {
     var chatId = msg.chat.id;
     //var photo = path.join(__dirname, '../resources/percentman.jpg');
     //winston.info(photo);

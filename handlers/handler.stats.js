@@ -26,7 +26,7 @@ module.exports = function(bot) {
   // *****************************
   //    Dota news
   // *****************************
-  bot.onText(/\/news/, function(msg) {
+  bot.onText(/^\/news(?:@\w*)?/i, function(msg) {
     var chatId = msg.chat.id;
 
     s.getNewsForApp({
@@ -54,7 +54,7 @@ module.exports = function(bot) {
   // *****************************
   //    Matches
   // *****************************
-  bot.onText(/\/matches/, function(msg) {
+  bot.onText(/^\/matches(?:@\w*)?/i, function(msg) {
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
     var userName = msg.from.userName;
@@ -83,7 +83,7 @@ module.exports = function(bot) {
   // *****************************
   //    Last Match
   // *****************************
-  bot.onText(/\/lastmatch/, function(msg) {
+  bot.onText(/^\/lastmatch(?:@\w*)?/i, function(msg) {
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
     var userName = msg.from.userName;
@@ -129,7 +129,7 @@ module.exports = function(bot) {
   // *****************************
   //    Top Feeds
   // *****************************
-  bot.onText(/\/topfeeds/, function(msg) {
+  bot.onText(/^\/topfeeds(?:@\w*)?/i, function(msg) {
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
     var userName = msg.from.userName;
@@ -160,7 +160,7 @@ module.exports = function(bot) {
   // *****************************
   //    Rebuild match database
   // *****************************
-  bot.onText(/\/rebuild/, function(msg) {
+  bot.onText(/^\/rebuild(?:@\w*)?/i, function(msg) {
     return bot.sendMessage(msg.chat.id, 'Rebuilding match database. This may take a while...')
       .then(() => matchScraper.rebuild())
       .then(result => console.log('Rebuild complete'))
@@ -171,7 +171,7 @@ module.exports = function(bot) {
   // *****************************
   //    Get stats
   // *****************************
-  bot.onText(/\/stats\s*(\w*)/, function(msg, match) {
+  bot.onText(/^\/stats(?:@\w*)?\b\s*(\w*)/i, function(msg, match) {
     var getAllStats = function() {
       console.log('Getting all stats for user: ' + msg.from.username);
       var a = User.findOne({ telegramId: msg.from.id }).exec();
@@ -214,7 +214,7 @@ module.exports = function(bot) {
       });
   });
 
-  bot.onText(/\/test/, function(msg) {
+  bot.onText(/^\/test(?:@\w*)?/i, function(msg) {
     // getSum(1401151, 7, 'deaths')
     //   .then(function(result) {
     //     console.log('sum: ', result);

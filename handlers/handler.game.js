@@ -15,7 +15,7 @@ module.exports = function(bot) {
   // *****************************
   //    Game creation / reschedule
   // *****************************
-  bot.onText(/\/(dota|dogte|dotes) (.+)/, function(msg, match) {
+  bot.onText(/^\/dog?t[ea]s?(?:@\w*)?\b\s*(?=(?:.*\b(\d{2})[:.;-]?(\d{2})\b)?)(.+)?/i, function(msg, match) {
     winston.info('handler.game - game creation request received');
     var chatId = msg.chat.id;
     var details = match[2];
@@ -25,33 +25,36 @@ module.exports = function(bot) {
       displayName += ' ' + msg.from.last_name;
     }
 
-    // Parse dates and users
-    var time = getTime(details);
-    var gameTime = new Date();
-    if(time) {
-      gameTime.setHours(time.substring(0,2));
-      gameTime.setMinutes(time.substring(2,4));
+    if (match[1] && match[2]) {
+      var gameTime = new Date();
+      gameTime.setHours(match[1]);
+      gameTime.setHours(match[2]);
       gameTime.setSeconds(0);
-    } else {
-      // no valid time found, let the user know
+    } else if (match[3]) {
+      // no valid time found, and there was other text that we do not currently recognise
       return bot.sendMessage(chatId, 'Unrecognised command. Usage example: `/dota at 1730`');
     }
+
 
     // Find game
     return Game.findOne({complete: false}).exec()
       .then(game => {
         if(game) {
-          // Update the existing game
-          winston.info(' Game already exists. Updating');
-          game.gameTime = gameTime;
-          game.notified = false;
-          game.shotgun(displayName);
+          if (gameTime) {
+            // Update the existing game
+            winston.info(' Game already exists. Updating');
+            game.gameTime = gameTime;
+            game.notified = false;
+            game.shotgun(displayName);
 
-          winston.info(' saving...');
-          return game.save()
-            .then(saved => bot.sendMessage(chatId, 'Dogte time modified'))
-            .then(sent => game.sendTimeUpdate(bot, chatId));
-        } else {
+            winston.info(' saving...');
+            return game.save()
+              .then(saved => bot.sendMessage(chatId, 'Dogte time modified'))
+              .then(sent => game.sendTimeUpdate(bot, chatId));
+          } else {
+            return game.sendTimeUpdate(bot, chatId);
+          }
+        } else if (gameTime) {
           // Create a new game
           game = new Game({
             gameTime: gameTime,
@@ -61,6 +64,8 @@ module.exports = function(bot) {
           });
           return game.save()
             .then(sent => game.sendTimeUpdate(bot, chatId));
+        } else {
+          bot.sendMessage(chatId, 'No currently scheduled dogte games.');
         }
       }).catch(err => handleError(err, chatId));
   });
@@ -68,7 +73,7 @@ module.exports = function(bot) {
   // *****************************
   //    Delete game
   // *****************************
-  bot.onText(/\/delete_(dota|dogte|dotes)/, function(msg) {
+  bot.onText(/^\/delete_dog?t[ae]s?(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - game deletion request received');
     var chatId = msg.chat.id;
 
@@ -106,7 +111,7 @@ module.exports = function(bot) {
   // *****************************
   //    shotgun
   // *****************************
-  bot.onText(/\/shotgun/, function(msg) {
+  bot.onText(/^\/shotgun(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - shotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -129,7 +134,7 @@ module.exports = function(bot) {
   // *****************************
   //    unshotgun
   // *****************************
-  bot.onText(/\/unshotgun/, function(msg) {
+  bot.onText(/^\/unshotgun(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - unshotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -152,7 +157,7 @@ module.exports = function(bot) {
   // *****************************
   //    rdy
   // *****************************
-  bot.onText(/\/(rdy|ready)/, function(msg) {
+  bot.onText(/^\/re?a?dy(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - rdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -175,7 +180,7 @@ module.exports = function(bot) {
   // *****************************
   //    undry
   // *****************************
-  bot.onText(/\/un(rdy|ready)/, function(msg) {
+  bot.onText(/^\/unre?a?dy(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - unrdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -201,17 +206,5 @@ module.exports = function(bot) {
     winston.error('An error occurred: ',err);
     msg = msg || 'Oh noes! An error occurred';
     return bot.sendMessage(chatId, msg+': \n'+err);
-  }
-
-  // *****************************
-  // Time parser
-  function getTime(msg) {
-    var replaced = msg.replace(/:|\.|;|-/gi, '');
-    var match = /(?:at)\s*(\d{4})/.exec(replaced);
-    if(match) {
-      return match[1];
-    } else {
-      return null;
-    }
   }
 }
