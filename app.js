@@ -25,17 +25,17 @@ mongoose.connect(config.mongo.uri, config.mongo.options);
 mongoose.connection.on('error', function(err) {
 	console.error('MongoDB connection error: ' + err);
 	process.exit(-1);
-	}
-);
+});
+
 // Populate DB with sample data
-if(config.seedDB) { require('./config/seed'); }
+if (config.seedDB) { require('./config/seed'); }
 
 // Setup the bot
 var bot = new TelegramBot(config.telegram.token, config.telegram.options);
 require('./handlers')(bot);
 require('./tasks')(bot);
 
-bot.getMe().then(function (me) {
+bot.getMe().then(function(me) {
   console.log('Hi my name is %s', me.username);
 });
 

@@ -16,9 +16,9 @@ var validAttributes = ['kills', 'deaths', 'assists'];
 var getStatsForAttribute = function(options) {
 
   // Check the appropriate options are set
-  if(!options.steamId) { throw 'No account specified'; }
-  if(!options.attribute) { throw 'Attribute not specified'; }
-  if(validAttributes.indexOf(options.attribute) === -1) { throw 'Invalid attribute specified'; }
+  if (!options.steamId) { throw 'No account specified'; }
+  if (!options.attribute) { throw 'Attribute not specified'; }
+  if (validAttributes.indexOf(options.attribute) === -1) { throw 'Invalid attribute specified'; }
   options.matches = options.matches || 25;
 
   // **********************************
@@ -37,11 +37,11 @@ var getStatsForAttribute = function(options) {
       var matchId = match.match_id;
 
       sum += attrVal;
-      if(attrVal > max) {
+      if (attrVal > max) {
         max = attrVal;
         max_match = matchId;
       }
-      if(attrVal < min) {
+      if (attrVal < min) {
         min = attrVal;
         min_match = matchId;
       }
@@ -59,7 +59,7 @@ var getStatsForAttribute = function(options) {
       minMatch: min_match,
       matches: matches.length
     };
-  }
+  };
 
   return Match.aggregate()
     .unwind('players')
@@ -67,7 +67,7 @@ var getStatsForAttribute = function(options) {
     .sort({ 'startTime': -1 })
     .limit(options.matches)
     .exec()
-    .then(matches => aggregate(matches));
+    .then((matches) => aggregate(matches));
   // return Match.find({ players: { $elemMatch: { accountId: options.steamId } } })
   //   .limit(options.matches)
   //   .exec()
@@ -86,7 +86,7 @@ var format = function(result) {
 //  returns a string
 // *****************************
 var formatSingleLine = function(result) {
-  return '*' + result.attribute + '*: Total: '+ result.sum + ' Min: ' + result.min + ' Max: ' + result.max + ' Avg: ' + result.average;
+  return '*' + result.attribute + '*: Total: ' + result.sum + ' Min: ' + result.min + ' Max: ' + result.max + ' Avg: ' + result.average;
 };
 
 module.exports = {
@@ -94,4 +94,4 @@ module.exports = {
   validAttributes: validAttributes,
   format: format,
   formatSingleLine: formatSingleLine
-}
+};

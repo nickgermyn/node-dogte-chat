@@ -4,7 +4,6 @@
 
 'use strict';
 
-var fs = require('fs');
 var readMe = require('../resources/ReadMeMessage.md');
 
 module.exports = function(bot) {
@@ -27,4 +26,4 @@ module.exports = function(bot) {
     var resp = readMe;
     return bot.sendMessage(chatId, resp, { parse_mode: 'Markdown'});
   });
-}
+};

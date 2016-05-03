@@ -19,7 +19,7 @@ module.exports = function(bot) {
     var telegramId = msg.from.id;
     var userName = msg.from.username;
     var displayName = msg.from.first_name;
-    if(msg.from.last_name) {
+    if (msg.from.last_name) {
       displayName += ' ' + msg.from.last_name;
     }
 
@@ -39,13 +39,13 @@ module.exports = function(bot) {
 
     // Find user
     return User.findOne({telegramId: telegramId}).exec()
-      .then(user => {
-        if(user) {
+      .then((user) => {
+        if (user) {
           // Update the existing user
-          if(steamId) {
+          if (steamId) {
             user.steamId = steamId;
           }
-          if(dotabuffId) {
+          if (dotabuffId) {
             user.dotaBuffId = dotabuffId;
           }
 
@@ -53,7 +53,7 @@ module.exports = function(bot) {
           user.displayName = displayName;
 
           return user.save()
-            .then(saved => bot.sendMessage(chatId, 'Account updated!'));
+            .then((saved) => bot.sendMessage(chatId, 'Account updated!'));
         } else {
           // Create a new user
           user = new User({
@@ -65,9 +65,9 @@ module.exports = function(bot) {
           });
 
           return user.save()
-            .then(saved => bot.sendMessage(chatId, 'Account created!'));
+            .then((saved) => bot.sendMessage(chatId, 'Account created!'));
         }
-    }).catch(err => handleError(err, chatId, 'There was an error creating account'));
+      }).catch((err) => handleError(err, chatId, 'There was an error creating account'));
   });
 
   // *****************************
@@ -77,14 +77,13 @@ module.exports = function(bot) {
     winston.info('handler.account - account query received');
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
-    var userName = msg.from.userName;
 
     // Find account
     User.findOne({telegramId: telegramId}).exec()
-      .then(user => {
-        if(!user) { bot.sendMessage(chatId, 'Could not find account. Have you registered?'); }
+      .then((user) => {
+        if (!user) { bot.sendMessage(chatId, 'Could not find account. Have you registered?'); }
         return bot.sendMessage(chatId, '`' + JSON.stringify(user, null, '  ') + '`');
-      }).catch(err => handleError(err, chatId));
+      }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
@@ -96,7 +95,7 @@ module.exports = function(bot) {
     var telegramId = msg.from.id;
 
     var a = User.findOne({ telegramId: telegramId }).exec();
-    var b = user.then(user => {
+    var b = a.then((user) => {
       if (user) {
         var messageText = 'Are you sure you wish to delete your account? (yes/no)';
         return bot.sendMessage(chatId, messageText, {
@@ -123,14 +122,14 @@ module.exports = function(bot) {
           });
         }
       });
-    }).catch(err => handleError(err, chatId));
+    }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
   // Error handler
   function handleError(err, chatId, msg) {
-    winston.error('An error occurred: ',err);
+    winston.error('An error occurred: ', err);
     msg = msg || 'Oh noes! An error occurred';
-    return bot.sendMessage(chatId, msg+': \n'+err);
+    return bot.sendMessage(chatId, msg + ': \n' + err);
   }
-}
+};
