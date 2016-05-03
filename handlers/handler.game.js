@@ -84,7 +84,8 @@ module.exports = function(bot) {
         var messageText = 'Are you sure you wish to delete the game at '+game.gameTime+' (yes/no)?';
         return bot.sendMessage(chatId, messageText, {
           reply_markup: {
-            force_reply: true
+            force_reply: true,
+            selective: true
           }
         });
       }
