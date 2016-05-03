@@ -13,7 +13,7 @@ module.exports = function(bot) {
   // *****************************
   //    Register account
   // *****************************
-  bot.onText(/\/register (.+)/, function(msg, match) {
+  bot.onText(/^\/register(?:@\w*)?\b(?=(?:.*\bsteam:(\d+)\b)?)(?=(?:.*\bdotabuff:(\d*)\b)?)/i, function(msg, match) {
     winston.info('handler.account - register command received');
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
@@ -23,21 +23,21 @@ module.exports = function(bot) {
       displayName += ' ' + msg.from.last_name;
     }
 
-    var parts = match[1];
-    winston.debug('parts: ' + parts);
     winston.debug('from: ', msg.from);
 
-    var steamIdStr = getParam(parts, 'steam');
-    var dotaBuffId = getParam(parts, 'dotabuff');
+    var steamId = match[1];
+    var dotabuffId = match[2];
 
-    // Take the bottom 32bits of the steamId
-    if(steamIdStr) {
-      winston.debug('steamid: ' + steamIdStr);
-      var steamIdLong = Long.fromString(steamIdStr);
-      var steamId = steamIdLong.low;
+    // steam to 32bit
+    // 4503599627370496 minimum steam64 length (16)
+    // 4294967295 maximum steam32 length (10)
+    if (steamId && steamId.length > 10) {
+      winston.debug('steamid: ' + steamId);
+      steamId = Long.fromString(steamId).low;
       winston.debug('lowInt: ' + steamId);
     }
-    // Find game
+
+    // Find user
     return User.findOne({telegramId: telegramId}).exec()
       .then(user => {
         if(user) {
@@ -45,8 +45,8 @@ module.exports = function(bot) {
           if(steamId) {
             user.steamId = steamId;
           }
-          if(dotaBuffId) {
-            user.dotaBuffId = dotaBuffId;
+          if(dotabuffId) {
+            user.dotaBuffId = dotabuffId;
           }
 
           user.userName = userName;
@@ -61,7 +61,7 @@ module.exports = function(bot) {
             userName: userName,
             displayName: displayName,
             steamId: steamId,
-            dotaBuffId: dotaBuffId
+            dotaBuffId: dotabuffId
           });
 
           return user.save()
@@ -93,25 +93,5 @@ module.exports = function(bot) {
     winston.error('An error occurred: ',err);
     msg = msg || 'Oh noes! An error occurred';
     return bot.sendMessage(chatId, msg+': \n'+err);
-  }
-
-  // *****************************
-  //  getParam(text, param)
-  //
-  // Helper to extract a parameter value from a String
-  // e.g. for source string 'steam:123 dotabuff:456'
-  // if called for param 'steam' the method would
-  // return 123. If not found, null is returned.
-  function getParam(text, param) {
-    var params = text.split(' ');
-    var theParam = params.find(function(p) {
-      return p.startsWith(param);
-    });
-
-    if(!theParam) { return null; }
-    var nameAndVal = theParam.split(':');
-
-    if(nameAndVal.length != 2) { return null; }
-    return nameAndVal[1];
   }
 }
