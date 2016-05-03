@@ -171,7 +171,7 @@ module.exports = function(bot) {
   // *****************************
   //    Get stats
   // *****************************
-  bot.onText(/^\/stats\s*(\w*)/i, function(msg, match) {
+  bot.onText(/^\/stats(?:@\w*)?\b\s*(\w*)/i, function(msg, match) {
     var getAllStats = function() {
       console.log('Getting all stats for user: ' + msg.from.username);
       var a = User.findOne({ telegramId: msg.from.id }).exec();
