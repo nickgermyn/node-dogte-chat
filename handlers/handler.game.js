@@ -26,7 +26,7 @@ module.exports = function(bot) {
     if (match[1] && match[2]) {
       var gameTime = new Date();
       gameTime.setHours(match[1]);
-      gameTime.setHours(match[2]);
+      gameTime.setMinutes(match[2]);
       gameTime.setSeconds(0);
     } else if (match[3]) {
       // no valid time found, and there was other text that we do not currently recognise
