@@ -15,7 +15,7 @@ module.exports = function(bot) {
   // *****************************
   //    Game creation / reschedule
   // *****************************
-  bot.onText(/\/(dota|dogte|dotes) (.+)/, function(msg, match) {
+  bot.onText(/^\/dog?t[ea]s?(?:@\w*)?\b\s*(.+)/i, function(msg, match) {
     winston.info('handler.game - game creation request received');
     var chatId = msg.chat.id;
     var details = match[2];
@@ -68,7 +68,7 @@ module.exports = function(bot) {
   // *****************************
   //    Delete game
   // *****************************
-  bot.onText(/\/delete_(dota|dogte|dotes)/, function(msg) {
+  bot.onText(/^\/delete_dog?t[ae]s?(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - game deletion request received');
     var chatId = msg.chat.id;
 
@@ -106,7 +106,7 @@ module.exports = function(bot) {
   // *****************************
   //    shotgun
   // *****************************
-  bot.onText(/\/shotgun/, function(msg) {
+  bot.onText(/^\/shotgun(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - shotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -129,7 +129,7 @@ module.exports = function(bot) {
   // *****************************
   //    unshotgun
   // *****************************
-  bot.onText(/\/unshotgun/, function(msg) {
+  bot.onText(/^\/unshotgun(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - unshotgun received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -152,7 +152,7 @@ module.exports = function(bot) {
   // *****************************
   //    rdy
   // *****************************
-  bot.onText(/\/(rdy|ready)/, function(msg) {
+  bot.onText(/^\/re?a?dy(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - rdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;
@@ -175,7 +175,7 @@ module.exports = function(bot) {
   // *****************************
   //    undry
   // *****************************
-  bot.onText(/\/un(rdy|ready)/, function(msg) {
+  bot.onText(/^\/unre?a?dy(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - unrdy received');
     var chatId = msg.chat.id;
     var userName = msg.from.username;

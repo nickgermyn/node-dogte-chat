@@ -73,7 +73,7 @@ module.exports = function(bot) {
   // *****************************
   //    Get account
   // *****************************
-  bot.onText(/\/account/, function(msg) {
+  bot.onText(/^\/account(?:@\w*)?/i, function(msg) {
     winston.info('handler.account - account query received');
     var chatId = msg.chat.id;
     var telegramId = msg.from.id;
