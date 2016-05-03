@@ -83,7 +83,7 @@ module.exports = function(bot) {
     User.findOne({telegramId: telegramId}).exec()
       .then(user => {
         if(!user) { bot.sendMessage(chatId, 'Could not find account. Have you registered?'); }
-        return bot.sendMessage(chatId, JSON.stringify(user));
+        return bot.sendMessage(chatId, '`' + JSON.stringify(user, null, '  ') + '`');
       }).catch(err => handleError(err, chatId));
   });
 

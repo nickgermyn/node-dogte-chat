@@ -81,7 +81,7 @@ module.exports = function(bot) {
     var a = Game.findOne({complete: false}).exec();
     var b = a.then(game => {
       if(game) {
-        var messageText = 'Are you sure you wish to delete the game at '+game.gameTime+' (yes/no)?';
+        var messageText = 'Are you sure you wish to delete the game at '+game.gameTime+'? (yes/no)';
         return bot.sendMessage(chatId, messageText, {
           reply_markup: {
             force_reply: true,
@@ -99,7 +99,7 @@ module.exports = function(bot) {
       winston.info(' waiting for message reply');
       return bot.onReplyToMessage(chatId, sent.message_id, reply => {
         winston.info(' reply received: '+reply.text);
-        if(reply.text == 'yes') {
+        if(/(?:ye*(?:[ps]*)|(?:ah))|(?:sure)|(?:o?k+)/i.exec(reply.text)) {
           return Game.remove({ _id: game._id }).exec().then(() => {
             bot.sendMessage(chatId, 'Dota event deleted');
             winston.info(' dota event deleted!');
