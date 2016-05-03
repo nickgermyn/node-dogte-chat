@@ -113,7 +113,7 @@ module.exports = function(bot) {
         return bot.sendMessage(chatId, 'No account details found.');
       }
       winston.info(' waiting for account delete message reply');
-      return bot.onReplyToMessage(chatId, send.message_id, reply => {
+      return bot.onReplyToMessage(chatId, sent.message_id, (reply) => {
         winston.info(' reply received: ' + reply.text);
         if (/(?:ye*(?:[ps]*)|(?:ah))|(?:sure)|(?:o?k+)/i.exec(reply.text)) {
           return User.remove({ _id: user._id }).exec().then(() => {
