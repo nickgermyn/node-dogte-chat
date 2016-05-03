@@ -18,10 +18,8 @@ module.exports = function(bot) {
   bot.onText(/^\/dog?t[ea]s?(?:@\w*)?\b\s*(?=(?:.*\b(\d{2})[:.;-]?(\d{2})\b)?)(.+)?/i, function(msg, match) {
     winston.info('handler.game - game creation request received');
     var chatId = msg.chat.id;
-    var details = match[2];
-    var userName = msg.from.username;
     var displayName = msg.from.first_name;
-    if(msg.from.last_name) {
+    if (msg.from.last_name) {
       displayName += ' ' + msg.from.last_name;
     }
 
@@ -38,8 +36,8 @@ module.exports = function(bot) {
 
     // Find game
     return Game.findOne({complete: false}).exec()
-      .then(game => {
-        if(game) {
+      .then((game) => {
+        if (game) {
           if (gameTime) {
             // Update the existing game
             winston.info(' Game already exists. Updating');
@@ -49,8 +47,8 @@ module.exports = function(bot) {
 
             winston.info(' saving...');
             return game.save()
-              .then(saved => bot.sendMessage(chatId, 'Dogte time modified'))
-              .then(sent => game.sendTimeUpdate(bot, chatId));
+              .then((saved) => bot.sendMessage(chatId, 'Dogte time modified'))
+              .then((sent) => game.sendTimeUpdate(bot, chatId));
           } else {
             return game.sendTimeUpdate(bot, chatId);
           }
@@ -63,11 +61,11 @@ module.exports = function(bot) {
             shotguns: [displayName]
           });
           return game.save()
-            .then(sent => game.sendTimeUpdate(bot, chatId));
+            .then((sent) => game.sendTimeUpdate(bot, chatId));
         } else {
           bot.sendMessage(chatId, 'No currently scheduled dogte games.');
         }
-      }).catch(err => handleError(err, chatId));
+      }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
@@ -79,9 +77,9 @@ module.exports = function(bot) {
 
     // Find game
     var a = Game.findOne({complete: false}).exec();
-    var b = a.then(game => {
-      if(game) {
-        var messageText = 'Are you sure you wish to delete the game at '+game.gameTime+'? (yes/no)';
+    var b = a.then((game) => {
+      if (game) {
+        var messageText = 'Are you sure you wish to delete the game at ' + game.gameTime + '? (yes/no)';
         return bot.sendMessage(chatId, messageText, {
           reply_markup: {
             force_reply: true,
@@ -93,20 +91,20 @@ module.exports = function(bot) {
     });
 
     return Promise.join(a, b, (game, sent) => {
-      if(!sent) {
+      if (!sent) {
         return bot.sendMessage(chatId, noGame);
       }
       winston.info(' waiting for message reply');
-      return bot.onReplyToMessage(chatId, sent.message_id, reply => {
-        winston.info(' reply received: '+reply.text);
-        if(/(?:ye*(?:[ps]*)|(?:ah))|(?:sure)|(?:o?k+)/i.exec(reply.text)) {
+      return bot.onReplyToMessage(chatId, sent.message_id, (reply) => {
+        winston.info(' reply received: ' + reply.text);
+        if (/(?:ye*(?:[ps]*)|(?:ah))|(?:sure)|(?:o?k+)/i.exec(reply.text)) {
           return Game.remove({ _id: game._id }).exec().then(() => {
             bot.sendMessage(chatId, 'Dota event deleted');
             winston.info(' dota event deleted!');
           });
         }
       });
-    }).catch(err => handleError(err, chatId));
+    }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
@@ -115,21 +113,20 @@ module.exports = function(bot) {
   bot.onText(/^\/shotgun(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - shotgun received');
     var chatId = msg.chat.id;
-    var userName = msg.from.username;
     var displayName = msg.from.first_name;
-    if(msg.from.last_name) {
+    if (msg.from.last_name) {
       displayName += ' ' + msg.from.last_name;
     }
 
     // Find game
     return Game.findOne({complete: false}).exec()
-      .then(game => {
-        if(!game) { return bot.sendMessage(chatId, noGame); }
+      .then((game) => {
+        if (!game) { return bot.sendMessage(chatId, noGame); }
         game.shotgun(displayName);
 
         return game.save()
-          .then(saved => game.sendShotgunUpdate(bot, chatId));
-      }).catch(err => handleError(err, chatId));
+          .then((saved) => game.sendShotgunUpdate(bot, chatId));
+      }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
@@ -138,21 +135,20 @@ module.exports = function(bot) {
   bot.onText(/^\/unshotgun(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - unshotgun received');
     var chatId = msg.chat.id;
-    var userName = msg.from.username;
     var displayName = msg.from.first_name;
-    if(msg.from.last_name) {
+    if (msg.from.last_name) {
       displayName += ' ' + msg.from.last_name;
     }
 
     // Find game
     return Game.findOne({complete: false}).exec()
-      .then(game => {
-        if(!game) { return bot.sendMessage(chatId, noGame); }
+      .then((game) => {
+        if (!game) { return bot.sendMessage(chatId, noGame); }
 
         game.unshotgun(displayName);
         return game.save()
-          .then(saved => bot.sendMessage(chatId, displayName + ', your shotgun has been cancelled'));
-      }).catch(err => handleError(err, chatId));
+          .then((saved) => bot.sendMessage(chatId, displayName + ', your shotgun has been cancelled'));
+      }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
@@ -161,21 +157,20 @@ module.exports = function(bot) {
   bot.onText(/^\/re?a?dy(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - rdy received');
     var chatId = msg.chat.id;
-    var userName = msg.from.username;
     var displayName = msg.from.first_name;
-    if(msg.from.last_name) {
+    if (msg.from.last_name) {
       displayName += ' ' + msg.from.last_name;
     }
 
     // Find game
     return Game.findOne({complete: false}).exec()
-      .then(game => {
-        if(!game) { return bot.sendMessage(chatId, noGame); }
+      .then((game) => {
+        if (!game) { return bot.sendMessage(chatId, noGame); }
 
-        var response = game.readyup(displayName);
+        game.readyup(displayName);
         return game.save()
-          .then(saved => game.sendStackUpdate(bot, chatId));
-      }).catch(err => handleError(err, chatId));
+          .then((saved) => game.sendStackUpdate(bot, chatId));
+      }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
@@ -184,28 +179,27 @@ module.exports = function(bot) {
   bot.onText(/^\/unre?a?dy(?:@\w*)?/i, function(msg) {
     winston.info('handler.game - unrdy received');
     var chatId = msg.chat.id;
-    var userName = msg.from.username;
     var displayName = msg.from.first_name;
-    if(msg.from.last_name) {
+    if (msg.from.last_name) {
       displayName += ' ' + msg.from.last_name;
     }
 
     // Find game
     return Game.findOne({complete: false}).exec()
-      .then(game => {
-        if(!game) { return bot.sendMessage(chatId, noGame); }
+      .then((game) => {
+        if (!game) { return bot.sendMessage(chatId, noGame); }
 
         game.unreadyup(displayName);
         return game.save()
-          .then(saved => bot.sendMessage(chatId, displayName + ', your rdy has been cancelled'));
-      }).catch(err => handleError(err, chatId));
+          .then((saved) => bot.sendMessage(chatId, displayName + ', your rdy has been cancelled'));
+      }).catch((err) => handleError(err, chatId));
   });
 
   // *****************************
   // Error handler
   function handleError(err, chatId, msg) {
-    winston.error('An error occurred: ',err);
+    winston.error('An error occurred: ', err);
     msg = msg || 'Oh noes! An error occurred';
-    return bot.sendMessage(chatId, msg+': \n'+err);
+    return bot.sendMessage(chatId, msg + ': \n' + err);
   }
-}
+};

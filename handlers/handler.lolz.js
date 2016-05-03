@@ -4,11 +4,9 @@
 
 'use strict';
 
-var Game = require('../models/game');
-var path = require('path');
+//var Game = require('../models/game');
+//var path = require('path');
 var winston = require('winston');
-
-const noGame = 'No game scheduled today';
 
 module.exports = function(bot) {
 
@@ -32,12 +30,4 @@ module.exports = function(bot) {
     const file_id = 'AgADBQADqqcxGyhaOAvdebg3tenAnnOyvzIABFUjwhiwDPp9UTQAAgI';
     return bot.sendPhoto(chatId, file_id);
   });
-
-  // *****************************
-  // Error handler
-  function handleError(err, chatId, msg) {
-    winston.error('An error occurred: ',err);
-    msg = msg || 'Oh noes! An error occurred';
-    return bot.sendMessage(chatId, msg+': \n'+err);
-  }
-}
+};
