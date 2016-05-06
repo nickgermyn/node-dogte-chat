@@ -58,5 +58,18 @@ describe('handler.game', function gameHandlerSuite() {
       sendMessage(bot, { text: '/dota at 1930' });
     });
 
+    it('should add a day to the specified time if it is in the past', function test() {
+      const now = new Date(2016, 5, 6, 20, 0);
+      var gameTime = new Date(2016, 5, 6, 19, 30);
+
+      // Check if the time is in the past. If it is, then need to add a day
+      if (gameTime < now) {
+        gameTime.setDate(gameTime.getDate() + 1);
+      }
+
+      expect(gameTime.getDate()).to.equal(7);
+      expect(gameTime.getHours()).to.equal(19);
+      expect(gameTime.getMinutes()).to.equal(30);
+    });
   });
 });
