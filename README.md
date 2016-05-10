@@ -25,6 +25,13 @@ npm run start
 
 This command starts the node.js app
 
+## Development
+To run the unit tests execute the following command:
+
+```shell
+npm test
+```
+
 ## Usage
 
 ###THE DATABASE
@@ -41,10 +48,10 @@ This command starts the node.js app
     * `/dota`
 
 * `/delete_dota` - will remove the current dota event
-* `shotgun!` - shotgun for dota
-* `unshotgun!` - Remove yourself from the shotgun (and ready) list.
-* `rdy!` - ready up
-* `unrdy!` - Remove yourself from the ready list
+* `/shotgun` - shotgun for dota
+* `/unshotgun` - Remove yourself from the shotgun (and ready) list.
+* `/rdy` - ready up
+* `/unrdy` - Remove yourself from the ready list
 
 ###DOTA 2/STEAM API REQUESTS
 * `/topfeeds` - **Not currently implemented** See who died the most recently. Add the 'update' argument to refresh the list
