@@ -12,11 +12,14 @@ var mongoose = require('mongoose');
 var config = require('./lib/config/environment');
 var TelegramBot = require('node-telegram-bot-api');
 var Promise = require('bluebird');
+var winston = require('winston');
 
 // Custom extension handler
 require.extensions['.md'] = function(module, fileName) {
   module.exports = fs.readFileSync(fileName, 'utf8');
 };
+// Setup log level
+winston.level = 'debug';
 
 // Connect to database
 mongoose.Promise = Promise;
