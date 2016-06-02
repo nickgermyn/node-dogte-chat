@@ -15,7 +15,7 @@ class BotMock {
 
   simulateMessage(message) {
     const promises = [];
-    this.registeredCallbacks.forEach((reg) => {
+    this.registeredCallbacks.forEach(reg => {
       const result = reg.regexp.exec(message.text);
       if (result) {
         promises.push(reg.callback(message, result));
