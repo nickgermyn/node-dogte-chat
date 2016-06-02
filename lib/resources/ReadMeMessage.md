@@ -26,4 +26,10 @@ With the powers invested in me by Lord Gaben, I respond to the following command
 `/lastmatch` - Post your last match details
 `/news` - latest dota 2 news post
 
+*CUSTOM COMMANDS*
+`/setcommand <cmd> <action>` - registers a custom command that can execute an action. e.g.:
+    "*/setcommand /funny sendPhoto('123')*" would send the photo with file_id '123'
+`/listcommands` - lists all registered Commands
+`/deletecommand <cmd>` - deletes the specified command
+
 If a message is asking if or when dota is happening, or if there is a 5 stack, dogtebot will answer
