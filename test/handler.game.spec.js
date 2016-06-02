@@ -89,7 +89,7 @@ describe('handler.game', function gameHandlerSuite() {
 
     // Make a new instance of the bot for each test
     // Register all of the handlers each time as well
-    beforeEach((done) => {
+    beforeEach(done => {
       bot = new mocks.Bot();
       gameHandler(bot);
 
@@ -105,7 +105,7 @@ describe('handler.game', function gameHandlerSuite() {
       bot.sentMessages[0].message.should.contain('Unrecognised command');
     });
 
-    it('should create a game on good time', (done) => {
+    it('should create a game on good time', done => {
       const msg = buildMessage('/dota at 1930');
       bot.simulateMessage(msg).then(() => {
         bot.sentMessages.should.have.lengthOf(1);
