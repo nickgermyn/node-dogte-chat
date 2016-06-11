@@ -57,7 +57,7 @@ rules:
   # http://eslint.org/docs/rules/#stylistic-issues
   comma-spacing: 2
   eol-last: 2
-  indent: [2, 2, {SwitchCase: 1}]
+  indent: [2, "tab", {SwitchCase: 1}]
   keyword-spacing: 2
   max-len: [2, 120, 2]
   new-parens: 2
