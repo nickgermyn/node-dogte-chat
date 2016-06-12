@@ -16,7 +16,7 @@ var winston = require('winston');
 
 // Custom extension handler
 require.extensions['.md'] = function(module, fileName) {
-  module.exports = fs.readFileSync(fileName, 'utf8');
+	module.exports = fs.readFileSync(fileName, 'utf8');
 };
 // Setup log level
 winston.level = 'debug';
@@ -26,8 +26,8 @@ mongoose.Promise = Promise;
 //mongoose.set('debug', true);
 mongoose.connect(config.mongo.uri, config.mongo.options);
 mongoose.connection.on('error', function(err) {
-  console.error('MongoDB connection error: ' + err);
-  process.exit(-1);
+	console.error('MongoDB connection error: ' + err);
+	process.exit(-1);
 });
 
 // Populate DB with sample data
@@ -39,7 +39,7 @@ require('./lib/handlers')(bot);
 require('./lib/tasks')(bot);
 
 bot.getMe().then(function(me) {
-  console.log('Hi my name is %s', me.username);
+	console.log('Hi my name is %s', me.username);
 });
 
 // Expose application
